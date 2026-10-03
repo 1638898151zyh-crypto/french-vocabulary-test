@@ -1,0 +1,50 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {build} from 'esbuild';
+import {createRequire} from 'node:module';
+import {createHash} from 'node:crypto';
+
+const root=process.cwd();
+const bank=JSON.parse(await fs.readFile(path.join(root,'assets/vocabulary-bank.json'),'utf8'));
+const template=await fs.readFile(path.join(root,'assets/vocabulary-template.html'),'utf8');
+const core=await fs.readFile(path.join(root,'assets/vocabulary-core.js'),'utf8');
+const nodeFileResolver={name:'node-files',setup(builder){
+  builder.onResolve({filter:/.*/},args=>{
+    if(args.path==='node:crypto')return {path:'webcrypto',namespace:'browser-crypto'};
+    const anchor=args.importer || path.join(root,'app-bridge.js');
+    const resolved=createRequire(anchor).resolve(args.path);
+    return {path:resolved,namespace:'node-files'};
+  });
+  builder.onLoad({filter:/.*/,namespace:'node-files'},async args=>({contents:await fs.readFile(args.path,'utf8'),loader:args.path.endsWith('.json')?'json':'js',resolveDir:path.dirname(args.path)}));
+  builder.onLoad({filter:/.*/,namespace:'browser-crypto'},()=>({contents:'export const webcrypto=globalThis.crypto;',loader:'js'}));
+}};
+const bundle=await build({stdin:{contents:await fs.readFile(path.join(root,'app-bridge.js'),'utf8'),resolveDir:root,sourcefile:'app-bridge.js',loader:'js'},absWorkingDir:root,tsconfigRaw:{},plugins:[nodeFileResolver],bundle:true,write:false,format:'iife',platform:'browser',target:'es2022',minify:true,legalComments:'inline'});
+const sync=await fs.readFile(path.join(root,'assets/vocabulary-sync.js'),'utf8');
+const bridge=bundle.outputFiles[0].text.replace(/<\/script/gi,'<\\/script');
+const textbookBundle=await build({stdin:{contents:await fs.readFile(path.join(root,'textbook-bridge.js'),'utf8'),resolveDir:root,sourcefile:'textbook-bridge.js',loader:'js'},absWorkingDir:root,tsconfigRaw:{},plugins:[nodeFileResolver],bundle:true,write:false,format:'iife',platform:'browser',target:'es2022',minify:true,legalComments:'inline'});
+const textbookBridge=textbookBundle.outputFiles[0].text.replace(/<\/script/gi,'<\\/script');
+const textbook=(await fs.readFile(path.join(root,'assets/textbook-template.html'),'utf8')).replace('</body>',()=>`<script>${textbookBridge}</script></body>`);
+const dailyBundle=await build({stdin:{contents:await fs.readFile(path.join(root,'daily-bridge.js'),'utf8'),resolveDir:root,sourcefile:'daily-bridge.js',loader:'js'},absWorkingDir:root,tsconfigRaw:{},plugins:[nodeFileResolver],bundle:true,write:false,format:'iife',platform:'browser',target:'es2022',minify:true,legalComments:'inline'});
+const dailyBank=await fs.readFile(path.join(root,'assets/textbook-bank.json'),'utf8');
+const textbookCore=await fs.readFile(path.join(root,'assets/textbook-core.js'),'utf8');
+const dailyCore=await fs.readFile(path.join(root,'assets/daily-core.js'),'utf8');
+const dailyTitles={parts:JSON.parse(await fs.readFile(path.join(root,'assets/part-titles.json'),'utf8')),themes:JSON.parse(await fs.readFile(path.join(root,'assets/theme-titles.json'),'utf8'))};
+for(const e of JSON.parse(dailyBank)){const part=`U${Number(e.unite)}P${Number(e.partie)}`;if(!dailyTitles.parts[part]?.zh||!dailyTitles.themes[e.group])throw new Error(`Missing bilingual title: ${part} / ${e.group}`);}
+const daily=(await fs.readFile(path.join(root,'assets/daily-template.html'),'utf8')).replace('__TEXTBOOK_BANK__',()=>dailyBank.replace(/</g,'\\u003c')).replace('__TEXTBOOK_CORE__',()=>textbookCore).replace('__DAILY_CORE__',()=>dailyCore).replace('__DAILY_TITLES__',()=>JSON.stringify(dailyTitles).replace(/</g,'\\u003c')).replace('__DAILY_START__','').replace('__DAILY_BRIDGE__',()=>`<script>${dailyBundle.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')}</script>`);
+await fs.writeFile(path.join(root,'daily-built.html'),daily);
+const safeJson=JSON.stringify(bank).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026');
+const ui=template.replace('__VOCABULARY_JSON__',()=>safeJson).replace('__CORE_JS__',()=>core).replace('__SYNC_JS__',()=>sync).replace('__HOST_BRIDGE__',()=>bridge);
+if(/__(?:VOCABULARY_JSON|CORE_JS|SYNC_JS|HOST_BRIDGE)__/.test(ui))throw new Error('Unfilled UI template');
+const landing='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>法语词汇检测</title><style>body{font-family:Arial,"Microsoft YaHei",sans-serif;color:#222;padding:24px;max-width:600px;margin:0 auto}h1{font-size:24px}p{line-height:1.7}small{color:#777}</style><h1>法语词汇检测</h1><p>Édito B1 · 第一单元 P1＋P2</p><p>这是词汇检测服务。安装并连接你的插件后，在 ChatGPT 中输入“开始法语词汇检测”，即可直接翻开词义和音标，记录 ✔／✘。</p><small>普通检测五组十词；课本按主题全量分组；每日只复习已过关范围。</small></html>';
+const resourceUri=`ui://french-vocabulary-test/quiz-${createHash('sha256').update(ui).digest('hex').slice(0,16)}.html`;
+const textbookResourceUri=`ui://french-vocabulary-test/textbook-${createHash('sha256').update(textbook).digest('hex').slice(0,16)}.html`;
+const dailyResourceUri=`ui://french-vocabulary-test/daily-${createHash('sha256').update(daily).digest('hex').slice(0,16)}.html`;
+const worker=(await fs.readFile(path.join(root,'worker-source.mjs'),'utf8')).replace('__QUIZ_RESOURCE_URI__',resourceUri).replace('__TEXTBOOK_RESOURCE_URI__',textbookResourceUri).replace('__DAILY_RESOURCE_URI__',dailyResourceUri);
+if(/__(?:QUIZ|TEXTBOOK|DAILY)_RESOURCE_URI__/.test(worker))throw new Error('Unfilled UI resource URI');
+const source=`const BANK=${JSON.stringify(bank)};\nconst QUIZ_HTML=${JSON.stringify(ui)};\nconst TEXTBOOK_HTML=${JSON.stringify(textbook)};\nconst DAILY_HTML=${JSON.stringify(daily)};\nconst LANDING_HTML=${JSON.stringify(landing)};\n${core}\n${worker}`;
+await fs.mkdir(path.join(root,'dist/server'),{recursive:true});
+await fs.mkdir(path.join(root,'dist/.openai'),{recursive:true});
+await fs.writeFile(path.join(root,'dist/server/index.js'),source);
+await fs.copyFile(path.join(root,'.openai/hosting.json'),path.join(root,'dist/.openai/hosting.json'));
+await fs.writeFile(path.join(root,'ui-built.html'),ui);
+console.log(JSON.stringify({workerBytes:Buffer.byteLength(source),uiBytes:Buffer.byteLength(ui),textbookBytes:Buffer.byteLength(textbook),resourceUri,textbookResourceUri,artifact:'dist/server/index.js'}));

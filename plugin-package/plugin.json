@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "french-vocabulary-test",
+  "version": "1.0.7",
+  "description": "为现有法语词汇检测插件提供卡片工具，连接既有词汇服务并保留原记录。",
+  "author": {
+    "name": "1638898151zyh-crypto"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "capabilities": [
+          "Interactive"
+        ],
+        "category": "Other",
+        "defaultPrompt": [
+          "开始课本单词检测",
+          "打开每日单词检测",
+          "开始第一单元法语词汇自测"
+        ],
+        "developerName": "1638898151zyh-crypto",
+        "displayName": "法语词汇检测",
+        "longDescription": "法语到中文交互式词汇自测。包含普通词汇检测、按主题完整分组的课本单词检测，以及读取已过关主进度的每日单词检测。支持翻词、音标、自评和改选；课本与每日进度保存在客户端，可导入导出。",
+        "shortDescription": "法语课本词汇自测与每日主题复习"
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "每日单词检测"
+  short_description: "每组一个主题的五组十词复习，副进度独立且自动更新"
+  default_prompt: "使用 $daily-vocabulary-test 打开每日单词检测，按最新课本已过关主进度生成五组各十词。"

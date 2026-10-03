@@ -1,0 +1,4 @@
+interface:
+  display_name: "课本单词检测"
+  short_description: "按 Édito B1 单个部分的主题分组检测全部词汇，翻词自评并沿独立主进度过关"
+  default_prompt: "使用 $textbook-vocabulary-test 从当前主进度开始课本单词检测。"

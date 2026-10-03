@@ -1,0 +1,193 @@
+{
+  "source": "Édito_B1_2023_标准词库.csv",
+  "csv": "assets/edito-b1-2023.csv",
+  "json": "assets/edito-b1-2023.json",
+  "entries": 1110,
+  "units": [
+    {
+      "unit": 1,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 46,
+          "title": "Les relations familiales, l’amour"
+        },
+        {
+          "part": 2,
+          "entries": 48,
+          "title": "Les relations amicales"
+        }
+      ]
+    },
+    {
+      "unit": 2,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 45,
+          "title": "Le vivre-ensemble"
+        },
+        {
+          "part": 2,
+          "entries": 37,
+          "title": "Le mieux-vivre ensemble"
+        }
+      ]
+    },
+    {
+      "unit": 3,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 40,
+          "title": "Les spectacles, la musique"
+        },
+        {
+          "part": 2,
+          "entries": 53,
+          "title": "Les arts, le théâtre, le cinéma"
+        }
+      ]
+    },
+    {
+      "unit": 4,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 53,
+          "title": "La langue, la francophonie et l’ailleurs"
+        },
+        {
+          "part": 2,
+          "entries": 39,
+          "title": "L’alimentation"
+        }
+      ]
+    },
+    {
+      "unit": 5,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 47,
+          "title": "La ville et la vie de quartier"
+        },
+        {
+          "part": 2,
+          "entries": 47,
+          "title": "Vivre en ville"
+        }
+      ]
+    },
+    {
+      "unit": 6,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 35,
+          "title": "Le voyage : préparation et expérience"
+        },
+        {
+          "part": 2,
+          "entries": 59,
+          "title": "Le voyage : transport et tourisme"
+        }
+      ]
+    },
+    {
+      "unit": 7,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 42,
+          "title": "Les études"
+        },
+        {
+          "part": 2,
+          "entries": 38,
+          "title": "L’apprentissage"
+        }
+      ]
+    },
+    {
+      "unit": 8,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 56,
+          "title": "La consommation, l’économie"
+        },
+        {
+          "part": 2,
+          "entries": 32,
+          "title": "La consommation, l’environnement"
+        }
+      ]
+    },
+    {
+      "unit": 9,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 43,
+          "title": "Le marché du travail"
+        },
+        {
+          "part": 2,
+          "entries": 50,
+          "title": "La vie professionnelle et la santé"
+        }
+      ]
+    },
+    {
+      "unit": 10,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 70,
+          "title": "L’activité physique et digitale"
+        },
+        {
+          "part": 2,
+          "entries": 47,
+          "title": "Le jeu et l’innovation technique"
+        }
+      ]
+    },
+    {
+      "unit": 11,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 37,
+          "title": "Se mettre en scène"
+        },
+        {
+          "part": 2,
+          "entries": 45,
+          "title": "La réalisation personnelle"
+        }
+      ]
+    },
+    {
+      "unit": 12,
+      "parts": [
+        {
+          "part": 1,
+          "entries": 54,
+          "title": "L’inclusion"
+        },
+        {
+          "part": 2,
+          "entries": 47,
+          "title": "La citoyenneté"
+        }
+      ]
+    }
+  ],
+  "ipa_status": {
+    "espeak_draft_review_needed": 1046,
+    "manually_reviewed": 64
+  },
+  "source_sha256": "9ee0c3cd40fab10e999e8af182bcbd872522c1b596b5589749bee668a31bdc83"
+}

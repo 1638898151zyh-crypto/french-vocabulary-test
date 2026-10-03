@@ -1,0 +1,4 @@
+interface:
+  display_name: "法语词汇检测"
+  short_description: "法语到中文的隐藏答案自测，五组十词，翻开音标并累计对错次数"
+  default_prompt: "使用 $french-vocabulary-test 开始一轮法语词汇检测，每组 10 词，共 5 组。"

@@ -1,0 +1,22 @@
+{
+  "name": "french-vocabulary-test",
+  "private": true,
+  "version": "1.0.7",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "db:generate": "node scripts/generate-migration.mjs",
+    "test": "node scripts/test-textbook.mjs && node scripts/test-daily.mjs && node scripts/test-mcp.mjs && node scripts/validate-artifact.mjs",
+    "package:plugin": "python3 scripts/package-plugin.py"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "2.0.3",
+    "drizzle-kit": "0.31.11",
+    "drizzle-orm": "0.45.3",
+    "esbuild": "0.28.2"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  }
+}

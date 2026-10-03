@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "french-vocabulary-test",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "为现有法语词汇检测插件提供卡片工具，连接既有词汇服务并保留原记录。",
   "author": {
     "name": "1638898151zyh-crypto"

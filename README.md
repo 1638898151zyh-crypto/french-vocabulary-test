@@ -1,6 +1,6 @@
 # 法语词汇检测 / French Vocabulary Test
 
-交互式法语→中文词汇自测插件，源码基于现用 **1.0.7**。包含三个 ChatGPT skill、自包含 HTML 卡片、MCP 服务和行为测试。
+交互式法语→中文词汇自测插件，源码基于现用 **1.0.8**。包含三个 ChatGPT skill、自包含 HTML 卡片、MCP 服务和行为测试。
 
 ## 功能
 

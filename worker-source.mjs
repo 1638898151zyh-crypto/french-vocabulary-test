@@ -12,7 +12,7 @@ const resourceMeta={
 const actionSchema={type:'object',properties:{action:{type:'string',enum:['toggle','vote','group','repeat','next']},roundId:{type:'string'},id:{type:'string'},kind:{type:'string',enum:['good','bad']},group:{type:'integer',minimum:0,maximum:4},requestId:{type:'string'}},required:['action','roundId','requestId'],additionalProperties:false};
 const tools=[
   {name:'open_vocabulary_test',title:'法语词汇检测',description:'打开法语词汇检测，恢复第一单元 P1 和 P2 的本轮记录；每组十词，共五组。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,openWorldHint:false,destructiveHint:false},_meta:{ui:{resourceUri:RESOURCE},'openai/outputTemplate':RESOURCE}},
-  {name:'open_textbook_vocabulary_test',title:'课本单词检测',description:'打开 Édito B1 课本检测交互卡片，按主题分组检测当前 Part 全部词条，每组为一个完整主题，组数与词数不设上限，沿24个Part推进。主进度由界面恢复当前客户端记录；可导入导出，不是云端主进度。无记录时从U1 P1开始。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,openWorldHint:false,destructiveHint:false},_meta:{ui:{resourceUri:TEXTBOOK_RESOURCE},'openai/outputTemplate':TEXTBOOK_RESOURCE}},
+  {name:'open_textbook_vocabulary_test',title:'课本单词检测',description:'打开 Édito B1 课本检测交互卡片，按主题分组检测当前 Part 全部词条，每组为一个完整主题，组数与词数不设上限，沿24个Part推进。主进度由界面恢复当前客户端记录；可导入导出，不是云端主进度。无记录时从U1 P1开始。',inputSchema:{type:'object',properties:{part:{type:'string',pattern:'^U([1-9]|1[0-2])P[12]$'},checkpoint:{type:'object',additionalProperties:true},transition_id:{type:'string',maxLength:128}},additionalProperties:false},annotations:{readOnlyHint:true,openWorldHint:false,destructiveHint:false},_meta:{ui:{resourceUri:TEXTBOOK_RESOURCE},'openai/outputTemplate':TEXTBOOK_RESOURCE}},
   {name:'open_daily_vocabulary_test',title:'每日单词检测',description:'打开每日复习交互卡片；读取客户端课本已过关主进度，副进度不得超出主进度。最近Part抽两组、倒数第二和第三Part各一组、其余已过关Part随机一个抽一组；五组十词，每组来自一个词库主题，每次打开重新抽词。至少需4个已过关Part；主题不足10词不跨主题补词。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,openWorldHint:false,destructiveHint:false},_meta:{ui:{resourceUri:DAILY_RESOURCE},'openai/outputTemplate':DAILY_RESOURCE}},
   {name:'vocabulary_action',title:'记录词汇检测',description:'界面使用：翻开、收起、自评、改选、换组或开启新一轮；每轮每词只计一个结果，改选会替换原结果。',inputSchema:actionSchema,annotations:{readOnlyHint:false,openWorldHint:false,destructiveHint:false,idempotentHint:true},_meta:{ui:{visibility:['app']}}},
   {name:'get_vocabulary_progress',title:'词汇检测进度',description:'读取本轮进度和历史累计，不能代替用户自评。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,openWorldHint:false,destructiveHint:false}}
@@ -62,7 +62,14 @@ async function applyAction(db,userId,args){
 }
 async function callTool(name,args,env,userId){
   if(!userId)return {content:[{type:'text',text:'请先连接词汇检测插件。'}],isError:true};
-  if(name==='open_textbook_vocabulary_test')return {content:[{type:'text',text:'已打开课本单词检测。请在卡片中恢复当前客户端主进度，或导入此前导出的记录。'}],structuredContent:{mode:'textbook',level:'B1',parts:24,bankWords:1110,progressStorage:'client-local'},_meta:{'openai/widgetDescription':'Édito B1 当前 Part 全量词汇自测；点击词条翻开中文和音标，自评可改选。主进度保存在当前客户端。'}};
+  if(name==='open_textbook_vocabulary_test'){
+    const checkpoint=args?.checkpoint?TextbookCore.restore(args.checkpoint,TEXTBOOK_BANK):null;
+    if(args?.checkpoint&&!checkpoint)return {isError:true,content:[{type:'text',text:'课本主进度无效；未改动已有记录。'}]};
+    if(args?.part&&!/^U([1-9]|1[0-2])P[12]$/.test(args.part))return {isError:true,content:[{type:'text',text:'Part 参数无效。'}]};
+    if(args?.part&&!checkpoint)return {isError:true,content:[{type:'text',text:'指定 Part 时请提供可信 checkpoint；不能猜测主进度。'}]};
+    if(args?.part&&checkpoint&&!checkpoint.attempts.some(a=>a.part===args.part))return {isError:true,content:[{type:'text',text:'主进度中没有该 Part 的检测轮次，不能猜测进度。'}]};
+    return {content:[{type:'text',text:'已打开独立的课本单 Part 卡片。过关后保留此卡片，并请求下一 Part 的新聊天卡片。'}],structuredContent:{mode:'textbook',launchId:crypto.randomUUID(),part:args?.part||null,transitionId:args?.transition_id||null,parts:24,bankWords:1110,progressStorage:'client-local'},_meta:{...(checkpoint?{textbookCheckpoint:checkpoint}:{}),'openai/widgetDescription':'课本单 Part 卡片；过关后另开新卡片，本卡片保留原 Part 和判定。'}};
+  }
   if(name==='open_daily_vocabulary_test')return {content:[{type:'text',text:'已打开每日单词检测。卡片将按本客户端课本主进度抽取5组各10词，每组只取一个主题；可导入课本主进度。请在卡片中自评。'}],structuredContent:{mode:'daily',launchId:crypto.randomUUID(),groups:5,words:50,minimumMasteredParts:4,progressStorage:'client-local'},_meta:{'openai/widgetDescription':'每日单词检测，读取本客户端课本已过关范围，独立副进度、翻词、自评与改选，不推进主进度。'}};
   if(!env.DB)return {content:[{type:'text',text:'云端记录暂不可用。'}],isError:true};
   try{

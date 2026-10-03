@@ -40,6 +40,8 @@ def main():
       if(!TextbookCore.pass(state,bank,'manual',process.argv[5]))throw Error('无法推进当前部分');
       state.updatedAt=new Date().toISOString();
     }
+    const selected=state.completed?state.attempts.length-1:state.attempts.findLastIndex(a=>a.part===state.order[state.current]&&!a.passReason);
+    if(selected>=0)state.view=selected;
     console.log(JSON.stringify(state));'''
     command = ['node', '-e', js, str(skill/'assets/textbook-core.js'), str(bank_path), str(args.state.resolve()) if args.state else '', 'pass' if args.passed else '', args.request_id or '']
     state = json.loads(subprocess.check_output(command, text=True))

@@ -16,7 +16,7 @@
 <nav class="tabs" role="tablist" aria-label="词汇分组"></nav><h2 class="theme-heading"><span id="theme-fr" lang="fr"></span><span id="theme-zh"></span></h2><section class="list" id="word-list" role="tabpanel"></section>
 <div class="pager"><button class="nav" id="previous">← 上一组</button><span id="page-number"></span><button class="nav next" id="next">下一组 →</button></div>
 <div class="actions"><button class="action" id="repeat">再测本部分</button><button class="action primary" id="pass">本部分过关 →</button></div>
-<div class="tools"><button class="nav" id="review">修改上一轮判定</button><button class="nav" id="current">返回当前检测</button><button class="nav" id="export">导出记录</button><button class="nav" id="import">导入记录</button><input type="file" id="import-file" accept="application/json,.json" hidden></div>
+<div class="tools"><button class="nav" id="review">打开上一轮卡片</button><button class="nav" id="current">打开当前检测新卡片</button><button class="nav" id="open-next" hidden>打开下一部分新卡片</button><button class="nav" id="copy-next" hidden>复制续接请求</button><button class="nav" id="export">导出记录</button><button class="nav" id="import">导入记录</button><input type="file" id="import-file" accept="application/json,.json" hidden></div>
 <p class="hint">点单词翻开／收起。✔／✘ 可改选；每轮每词只计一次。全部判定且100%正确后自动进入下一部分。</p>
 <p class="storage-note" id="storage-note"></p><p class="toast" id="toast" role="status" aria-live="polite"></p></main>
 <script id="vocabulary-data" type="application/json">__VOCABULARY_JSON__</script><script id="part-titles" type="application/json">__PART_TITLES_JSON__</script><script id="theme-titles" type="application/json">__THEME_TITLES_JSON__</script><script id="initial-state" type="application/json">__INITIAL_STATE_JSON__</script><script>__TEXTBOOK_CORE_JS__</script><script>
@@ -25,7 +25,8 @@
 const bank=JSON.parse(document.querySelector('#vocabulary-data').textContent),titles=JSON.parse(document.querySelector('#part-titles').textContent),initial=JSON.parse(document.querySelector('#initial-state').textContent),themeTitles=JSON.parse(document.querySelector('#theme-titles').textContent);
 const dictionary=new Map(bank.map(e=>[e.id,e])),Core=globalThis.TextbookCore,KEY='french-vocabulary-test:edito-b1:main:textbook:v1';
 const $=s=>document.querySelector(s),html=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let state, a, memoryOnly=false, corrupt=false, timer;
+let bootTime, interacted=false;
+let state, a, memoryOnly=false, corrupt=false, timer, cardId, launchId, pending, sending=false;
 try{const raw=localStorage.getItem(KEY);state=raw?Core.restore(raw,bank):null;corrupt=!!raw&&!state;}catch{memoryOnly=true;}
 // A newer supplied checkpoint takes precedence over a stale browser copy.
 if(initial&&(!state||(initial.updatedAt||'')>(state.updatedAt||'')))state=Core.restore(initial,bank)||state;
@@ -33,9 +34,50 @@ if(!state){
  let legacyStats={};try{const legacy=JSON.parse(localStorage.getItem('french-vocabulary-test:edito-b1-u1:v1')||'null');for(const [id,c] of Object.entries(legacy?.stats||{}))if(dictionary.has(id)&&Number.isSafeInteger(c.good)&&Number.isSafeInteger(c.bad)&&c.good>=0&&c.bad>=0)legacyStats[id]=c;}catch{}
  state=Core.create(bank,legacyStats);
 }
+bootTime=state.updatedAt||'';
+// A chat card owns one attempt; main progress may move independently.
+function currentIndex(s){return s.completed?s.attempts.length-1:s.attempts.findLastIndex(x=>x.part===s.order[s.current]&&!x.passReason);}
+const inlineId=typeof root==='undefined'?null:root.id;
+let initialId=initial?.attempts?.[initial.view]?.id;try{if(inlineId)initialId=localStorage.getItem(KEY+':inline:'+inlineId)||initialId;}catch{}
+const initialIndex=state.attempts.findIndex(x=>x.id===initialId);state.view=initialIndex>=0?initialIndex:currentIndex(state);cardId=Core.active(state).id;
+function pin(){const i=state.attempts.findIndex(x=>x.id===cardId);if(i<0)return false;state.view=i;return true;}
+function refresh(){try{const next=Core.restore(localStorage.getItem(KEY),bank);if(next&&next.attempts.some(x=>x.id===cardId)&&(next.updatedAt||'')>(state.updatedAt||'')){state=next;pin();}}catch{}}
+function promptFor(target,transitionId){return `课本单词检测：请为 ${target} 生成另一个独立的新聊天卡片，保留旧卡片。进度已处理，不要再次过关。调用 open_textbook_vocabulary_test，part=${target}，transition_id=${transitionId}，checkpoint 使用以下完整主进度；若工具不支持参数，按 skill 用此进度在唯一的新路径生成卡片。\ncheckpoint=${JSON.stringify(state)}`;}
+async function openCard(target,transitionId=crypto.randomUUID()){
+ if(sending)return;
+ pending={target,transitionId};$('#open-next').hidden=false;$('#copy-next').hidden=false;
+ if(!target)return; sending=true;$('#open-next').disabled=true;
+ const prompt=promptFor(target,transitionId);
+ try{
+  const host=globalThis.TextbookHost;
+  if(host)await host.send(prompt);
+  else if(typeof window.openai?.sendFollowUpMessage==='function')await window.openai.sendFollowUpMessage({prompt});
+  else throw Error('当前宿主未提供发送续接消息的能力');
+  toast('已请求新卡片；本卡片保留当前部分。');$('#open-next').hidden=true;
+ }catch{toast('本部分记录已保留。请点“打开下一部分新卡片”重试；仍不可用时复制续接请求发到聊天。');}
+ finally{sending=false;$('#open-next').disabled=false;}
+}
+function finish(reason){
+ clearTimeout(timer);refresh();pin();interacted=true;
+ if(!Core.pass(state,bank,reason,`${cardId}:${reason}`))return;
+ const next=state.completed?null:state.order[state.current];pin();render();
+ if(!next){toast('全书已过关；本卡片保留最后一部分。');return;}
+ openCard(next,`${cardId}:${reason}`);
+}
+globalThis.TextbookUI={start(result){
+ const data=result.structuredContent||{},checkpoint=result._meta?.textbookCheckpoint;
+ if(!data.launchId||launchId===data.launchId)return;launchId=data.launchId;
+ const supplied=checkpoint&&Core.restore(checkpoint,bank);
+ if(supplied&&(!state||(supplied.updatedAt||'')>=(interacted?(state.updatedAt||''):bootTime))){state=supplied;corrupt=false;}
+ let pinned;try{pinned=localStorage.getItem(KEY+':card:'+data.launchId);}catch{}
+ let i=state.attempts.findIndex(x=>x.id===(pinned||data.attemptId));
+ if(i<0&&data.part)i=state.attempts.findLastIndex(x=>x.part===data.part);
+ if(i<0)i=currentIndex(state);
+ state.view=i;cardId=Core.active(state).id;try{localStorage.setItem(KEY+':card:'+data.launchId,cardId);}catch{}render();scheduleAuto();
+}};
 function toast(t){$('#toast').textContent=t;}
 function save(){if(corrupt){$('#storage-note').textContent='原记录格式异常，暂不覆盖；请导出当前记录或导入有效备份。';$('#storage-note').classList.add('warning');return;}
- state.updatedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(state));memoryOnly=false;}catch{memoryOnly=true;}
+ state.updatedAt=new Date().toISOString();try{if(inlineId)localStorage.setItem(KEY+':inline:'+inlineId,cardId);localStorage.setItem(KEY,JSON.stringify(state));memoryOnly=false;}catch{memoryOnly=true;}
  $('#storage-note').classList.toggle('warning',memoryOnly);$('#storage-note').textContent=memoryOnly?'当前环境无法持久保存；请导出记录。':'主进度保存在此浏览器；跨设备或聊天续接可导出／导入记录。';}
     function renderRow(id, number) {
       const entry = dictionary.get(id), open = !!a.opened[id], rated = !!a.votes[id], counts = state.stats[id] || {good:0,bad:0};
@@ -47,7 +89,7 @@ function save(){if(corrupt){$('#storage-note').textContent='原记录格式异�
     }
 
 function render(persist=true){
- a=Core.active(state);const t=Core.totals(state),themeGroups=Core.groups(bank,a),n=themeGroups.length,p=Core.parts(bank).find(p=>p.key===a.part),title=titles[a.part];
+ pin();a=Core.active(state);const t=Core.totals(state),themeGroups=Core.groups(bank,a),n=themeGroups.length,p=Core.parts(bank).find(p=>p.key===a.part),title=titles[a.part];
  $('#scope-label').textContent=`Édito B1 · U${p.unit} P${p.part}`;$('#scope-fr').textContent=title.fr;$('#scope-zh').textContent=title.zh;
  $('#round-label').textContent=`第 ${a.round} 轮`;$('#badge').textContent=`${n} 组 · ${a.ids.length} 词`;
  $('#main-progress').textContent=state.completed?'主进度：全书已过关':`主进度：${state.order[state.current]} · 已过关 ${Object.keys(state.mastered).length}/24 部分`;
@@ -56,32 +98,34 @@ function render(persist=true){
  $('.tabs').innerHTML=Array.from({length:n},(_,i)=>`<button class="tab" role="tab" id="tab-${i}" data-group="${i}" aria-controls="word-list" aria-selected="${a.group===i}" tabindex="${a.group===i?0:-1}">第 ${i+1} 组</button>`).join('');
  $('#word-list').setAttribute('aria-labelledby',`tab-${a.group}`);$('#theme-fr').textContent=themeGroups[a.group].label;$('#theme-zh').textContent=themeTitles[themeGroups[a.group].label]||'';$('#word-list').innerHTML=themeGroups[a.group].ids.map((id,i)=>renderRow(id,i+1)).join('');
  $('#page-number').textContent=`${a.group+1} / ${n}`;$('#previous').disabled=a.group===0;$('#next').disabled=a.group===n-1;
- $('#pass').disabled=state.completed||a.part!==state.order[state.current];$('#repeat').disabled=state.completed;$('#review').disabled=state.view===0;
+ $('#pass').disabled=state.completed||a.part!==state.order[state.current];$('#repeat').disabled=state.completed||a.part!==state.order[state.current];$('#review').disabled=state.view===0;
  if(persist)save();
 }
 function scheduleAuto(){clearTimeout(timer);if(!state.completed&&a.part===state.order[state.current]&&Core.perfect(state)){
- const attemptId=a.id;toast('100% 正确，正在进入下一部分…');timer=setTimeout(()=>{if(Core.active(state).id===attemptId&&Core.perfect(state)&&Core.pass(state,bank,'automatic')){render();toast(state.completed?'全书已过关。':'已过关，开始下一部分。');}},800);
+ const attemptId=a.id;toast('100% 正确，正在打开下一部分的新卡片…');timer=setTimeout(()=>{if(Core.active(state).id===attemptId&&Core.perfect(state))finish('automatic');},800);
 }}
-$('#word-list').addEventListener('click',e=>{const b=e.target.closest('button'),r=b?.closest('.entry');if(!b||!r)return;const id=r.dataset.id;let changed=false;
- if(b.classList.contains('word'))changed=Core.toggle(state,id);else if(b.dataset.vote)changed=Core.vote(state,id,b.dataset.vote);if(!changed)return;
+$('#word-list').addEventListener('click',e=>{const b=e.target.closest('button'),r=b?.closest('.entry');if(!b||!r)return;const id=r.dataset.id;refresh();pin();let changed=false;
+ if(b.classList.contains('word'))changed=Core.toggle(state,id);else if(b.dataset.vote)changed=Core.vote(state,id,b.dataset.vote);if(!changed)return;interacted=true;
  // Patch only this row: feedback and positions are stable, saving follows rendering.
  a=Core.active(state);r.outerHTML=renderRow(id,Core.groups(bank,a)[a.group].ids.indexOf(id)+1);const t=Core.totals(state);
  $('#progress-label').textContent=`已判 ${t.done}/${t.total}`;$('#progress').value=t.done;$('#result').innerHTML=`<span class="green">✔ ${t.good}</span><span class="red">✘ ${t.bad}</span> · ${t.done===t.total?(100*t.good/t.total).toFixed(0)+'%':'未完成'}`;
- $('#main-progress').textContent=state.completed?'主进度：全书已过关':`主进度：${state.order[state.current]} · 已过关 ${Object.keys(state.mastered).length}/24 部分`;$('#pass').disabled=state.completed||a.part!==state.order[state.current];$('#repeat').disabled=state.completed;
+ $('#main-progress').textContent=state.completed?'主进度：全书已过关':`主进度：${state.order[state.current]} · 已过关 ${Object.keys(state.mastered).length}/24 部分`;$('#pass').disabled=state.completed||a.part!==state.order[state.current];$('#repeat').disabled=state.completed||a.part!==state.order[state.current];
  const row=Array.from($('#word-list').children).find(r=>r.dataset.id===id);(b.dataset.vote?row.querySelector(`[data-vote="${b.dataset.vote}"]`):row.querySelector('.word')).focus({preventScroll:true});
  scheduleAuto();requestAnimationFrame(save);
 });
-function group(i){if(i<0||i>=Core.groups(bank,a).length)return;a.group=i;render();}
+function group(i){refresh();pin();a=Core.active(state);if(i<0||i>=Core.groups(bank,a).length)return;a.group=i;interacted=true;render();}
 $('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(b)group(Number(b.dataset.group));});
 $('.tabs').addEventListener('keydown',e=>{const n=Core.groups(bank,a).length;let i=a.group;if(e.key==='ArrowRight')i=(i+1)%n;else if(e.key==='ArrowLeft')i=(i+n-1)%n;else if(e.key==='Home')i=0;else if(e.key==='End')i=n-1;else return;e.preventDefault();group(i);$(`#tab-${i}`).focus();});
 $('#previous').onclick=()=>group(a.group-1);$('#next').onclick=()=>group(a.group+1);
-$('#repeat').onclick=()=>{clearTimeout(timer);Core.repeat(state,bank);render();toast('已开始新一轮，累计保留。');};
-$('#pass').onclick=()=>{clearTimeout(timer);if(Core.pass(state,bank,'manual')){render();toast(state.completed?'全书已过关。':'已按你的确认进入下一部分。');}};
-$('#review').onclick=()=>{clearTimeout(timer);state.view--;render();toast('可修改本轮判定；重复同项不增加累计。');};
-$('#current').onclick=()=>{clearTimeout(timer);const part=state.order[state.current];const i=state.completed?state.attempts.length-1:state.attempts.findLastIndex(x=>x.part===part&&!x.passReason);if(i>=0)state.view=i;render();scheduleAuto();};
+$('#repeat').onclick=()=>{clearTimeout(timer);refresh();pin();if(Core.active(state).part!==state.order[state.current])return;if(Core.repeat(state,bank)){interacted=true;cardId=Core.active(state).id;render();toast('已开始本部分新一轮，累计保留。');}};
+$('#pass').onclick=()=>finish('manual');
+$('#review').onclick=()=>{refresh();pin();const previous=state.attempts.slice(0,state.view).at(-1);if(previous)openCard(previous.part);};
+$('#current').onclick=()=>{refresh();pin();if(!state.completed)openCard(state.order[state.current]);};
+$('#open-next').onclick=()=>{if(pending)openCard(pending.target,pending.transitionId);};
+$('#copy-next').onclick=async()=>{if(!pending)return;try{await navigator.clipboard.writeText(promptFor(pending.target,pending.transitionId));toast('已复制，请粘贴到聊天中生成新卡片。');}catch{toast('无法复制；请导出记录并在聊天中要求打开下一部分新卡片。');}};
 $('#export').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='edito-b1-main-progress.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-$('#import').onclick=()=>$('#import-file').click();$('#import-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const next=Core.restore(await f.text(),bank);if(!next)throw new Error('记录格式不匹配');clearTimeout(timer);state=next;corrupt=false;render();scheduleAuto();toast('已恢复主进度和累计记录。');}catch(err){toast('无法导入：'+err.message);}e.target.value='';};
-window.addEventListener('storage',e=>{if(e.key!==KEY||!e.newValue)return;const next=Core.restore(e.newValue,bank);if(next){clearTimeout(timer);state=next;render(false);scheduleAuto();}});
+$('#import').onclick=()=>$('#import-file').click();$('#import-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const next=Core.restore(await f.text(),bank);if(!next)throw new Error('记录格式不匹配');clearTimeout(timer);if(!next.attempts.some(x=>x.id===cardId))throw new Error('导入记录不含本卡片轮次，请在新卡片中导入');state=next;corrupt=false;pin();render();scheduleAuto();toast('已恢复主进度，本卡片仍保留原部分。');}catch(err){toast('无法导入：'+err.message);}e.target.value='';};
+window.addEventListener('storage',e=>{if(e.key!==KEY||!e.newValue)return;const next=Core.restore(e.newValue,bank);if(next){clearTimeout(timer);if(!next.attempts.some(x=>x.id===cardId))return;state=next;pin();render(false);scheduleAuto();}});
 render();scheduleAuto();
 })();
 </script></body></html>

@@ -1,13 +1,14 @@
 {
   "name": "french-vocabulary-test",
   "private": true,
-  "version": "1.0.7",
+  "version": "1.0.8",
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
     "db:generate": "node scripts/generate-migration.mjs",
-    "test": "node scripts/test-textbook.mjs && node scripts/test-daily.mjs && node scripts/test-mcp.mjs && node scripts/validate-artifact.mjs",
-    "package:plugin": "python3 scripts/package-plugin.py"
+    "test": "node scripts/test-textbook.mjs && node scripts/test-daily.mjs && node scripts/test-part-cards.mjs && node scripts/test-mcp.mjs && node scripts/validate-artifact.mjs",
+    "package:plugin": "python3 scripts/package-plugin.py",
+    "test:part-cards": "node scripts/test-part-cards.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "2.0.3",
@@ -18,5 +19,8 @@
   "license": "MIT",
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.1"
   }
 }

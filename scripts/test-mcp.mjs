@@ -31,6 +31,10 @@ for(const name of ['open_vocabulary_test','open_textbook_vocabulary_test','open_
   const id=C.active(s).ids[0];assert.equal(C.vote(s,id,'good'),false);C.toggle(s,id);C.vote(s,id,'good');assert.equal(C.vote(s,id,'good'),false);C.vote(s,id,'bad');assert.equal(s.stats[id].good,0);assert.equal(s.stats[id].bad,1);
   for(const id of C.active(s).ids){if(!C.active(s).opened[id])C.toggle(s,id);C.vote(s,id,'good');}
   assert.equal(C.pass(s,bank,'automatic','test-auto'),true);assert.equal(C.active(s).part,'U1P2');assert.equal(C.pass(s,bank,'manual','test-auto'),false);assert.ok(C.restore(s,bank));
+  const nextCard=(await rpc('tools/call',{name,arguments:{part:'U1P2',checkpoint:s,transition_id:'test-auto'}},true)).body.result;
+  assert.equal(nextCard.structuredContent.part,'U1P2');assert.ok(nextCard.structuredContent.launchId);assert.equal(nextCard._meta.textbookCheckpoint.current,1);
+  assert.equal((await rpc('tools/call',{name,arguments:{part:'U1P2',checkpoint:{version:1}}},true)).body.result.isError,true);
+  assert.equal((await rpc('tools/call',{name,arguments:{part:'U1P2'}},true)).body.result.isError,true);
  }
 }
 assert.equal((await rpc('resources/read',{uri:'ui://other/test.html'},true)).body.error.code,-32602);

@@ -56,7 +56,7 @@ def inline_card(document, mode):
     css += '\n@media(pointer:coarse){' + root + ' .mark,' + root + ' .nav,' + root + ' .tab,' + root + ' .action{min-height:44px}}'
     ui = body.group(1)
     # Separate frames and repeated cards must not attach to each other's nodes or globals.
-    aliases = {'TextbookCore': 'TBCardCore_' + token, 'VocabCore': 'FVCardCore_' + token}
+    aliases = {'TextbookCore': 'TBCardCore_' + token, 'TextbookUI': 'TBCardUI_' + token, 'TextbookHost': 'TBCardHost_' + token, 'VocabCore': 'FVCardCore_' + token}
     for old, new in aliases.items():
         ui = ui.replace('globalThis.' + old, 'globalThis.' + new)
     ui = ui.replace('const host = globalThis.VocabHost;', 'const host = undefined;')

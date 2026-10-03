@@ -41,7 +41,7 @@ const textbookResourceUri=`ui://french-vocabulary-test/textbook-${createHash('sh
 const dailyResourceUri=`ui://french-vocabulary-test/daily-${createHash('sha256').update(daily).digest('hex').slice(0,16)}.html`;
 const worker=(await fs.readFile(path.join(root,'worker-source.mjs'),'utf8')).replace('__QUIZ_RESOURCE_URI__',resourceUri).replace('__TEXTBOOK_RESOURCE_URI__',textbookResourceUri).replace('__DAILY_RESOURCE_URI__',dailyResourceUri);
 if(/__(?:QUIZ|TEXTBOOK|DAILY)_RESOURCE_URI__/.test(worker))throw new Error('Unfilled UI resource URI');
-const source=`const BANK=${JSON.stringify(bank)};\nconst QUIZ_HTML=${JSON.stringify(ui)};\nconst TEXTBOOK_HTML=${JSON.stringify(textbook)};\nconst DAILY_HTML=${JSON.stringify(daily)};\nconst LANDING_HTML=${JSON.stringify(landing)};\n${core}\n${worker}`;
+const source=`const BANK=${JSON.stringify(bank)};\nconst QUIZ_HTML=${JSON.stringify(ui)};\nconst TEXTBOOK_HTML=${JSON.stringify(textbook)};\nconst DAILY_HTML=${JSON.stringify(daily)};\nconst LANDING_HTML=${JSON.stringify(landing)};\n${core}\nconst TEXTBOOK_BANK=${dailyBank};\n${textbookCore}\n${worker}`;
 await fs.mkdir(path.join(root,'dist/server'),{recursive:true});
 await fs.mkdir(path.join(root,'dist/.openai'),{recursive:true});
 await fs.writeFile(path.join(root,'dist/server/index.js'),source);

@@ -4,7 +4,7 @@
 
 ## 在线学习网站
 
-[打开 Édito Atelier](https://edito-b1-atelier.netlify.app/)：三个检测入口、完整词库、独立 Part 卡片、历史记录和进度导入导出。游客进度保存在本机；Netlify Identity 启用后支持账号云同步。网站与 ChatGPT 插件通过主进度文件迁移。
+[打开 Édito Atelier](https://editob1test.netlify.app/)：三个检测入口、完整词库、独立 Part 卡片、历史记录和进度导入导出。游客进度保存在本机；已启用邮箱注册与账号进度云同步，注册需确认邮箱。网站与 ChatGPT 插件通过主进度文件迁移。
 
 网站源码位于 [`website/`](website/README.md)，根目录 `netlify.toml` 提供 Netlify 构建配置。
 

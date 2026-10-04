@@ -2,6 +2,12 @@
 
 交互式法语→中文词汇自测插件，源码基于现用 **1.0.8**。包含三个 ChatGPT skill、自包含 HTML 卡片、MCP 服务和行为测试。
 
+## 在线学习网站
+
+[打开 Édito Atelier](https://edito-b1-atelier.netlify.app/)：三个检测入口、完整词库、独立 Part 卡片、历史记录和进度导入导出。游客进度保存在本机；Netlify Identity 启用后支持账号云同步。网站与 ChatGPT 插件通过主进度文件迁移。
+
+网站源码位于 [`website/`](website/README.md)，根目录 `netlify.toml` 提供 Netlify 构建配置。
+
 ## 功能
 
 | 入口 | 规则 | 保存位置 |

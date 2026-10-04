@@ -16,3 +16,8 @@ plugin-package/.app.json
 plugin-package/.codex-plugin/
 plugin-package/mcp.json
 .DS_Store
+
+.netlify/
+website/dist/
+website/node_modules/
+deploy-*.zip

@@ -45,6 +45,8 @@ Part 与主题带中文标题。Édito B2 是待导入选项，“我的法语�
 
 首页和设置提供“安装到桌面”入口。支持安装提示的浏览器会显示“安装应用”；其他情况可展开安装说明：
 
+完整说明见 [INSTALL.md](INSTALL.md)；发布附件位于 [GitHub Releases](https://github.com/Alain-0721/french-vocabulary-test/releases)。PWA 通过浏览器安装，Release 的 ZIP 是静态网站部署包。
+
 - **iPhone / iPad**：用 Safari 打开网站，点分享 → 添加到主屏幕 → 添加。
 - **安卓**：用 Chrome 打开，点安装应用，或在浏览器菜单选择安装应用 / 添加到主屏幕。
 - **电脑**：用 Chrome 或 Edge 打开，点击地址栏的安装图标。

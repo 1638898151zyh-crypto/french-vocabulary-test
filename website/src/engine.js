@@ -1,10 +1,10 @@
 import '../../assets/textbook-core.js';
 import '../../assets/daily-core.js';
 import '../../assets/vocabulary-core.js';
-import bank from '../../assets/textbook-bank.json';
-import ordinaryBank from '../../assets/vocabulary-bank.json';
-import titles from '../../assets/part-titles.json';
-import themeTitles from '../../assets/theme-titles.json';
+import bank from '../../assets/textbook-bank.json' with {type:'json'};
+import ordinaryBank from '../../assets/vocabulary-bank.json' with {type:'json'};
+import titles from '../../assets/part-titles.json' with {type:'json'};
+import themeTitles from '../../assets/theme-titles.json' with {type:'json'};
 export {bank,ordinaryBank,titles,themeTitles};
 export const T=globalThis.TextbookCore,D=globalThis.DailyCore,V=globalThis.VocabCore;
 export const dictionary=new Map(bank.map(e=>[e.id,e]));

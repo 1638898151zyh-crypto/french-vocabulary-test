@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {test} from 'node:test';
+import * as S from '../src/preview-study.js';
+
+const bank=[
+ {id:'a',unite:1,partie:1,group:'Greetings',fr:'bonjour',zh:'你好'},
+ {id:'b',unite:1,partie:1,group:'Greetings',fr:'salut',zh:'嗨'},
+ {id:'c',unite:1,partie:1,group:'Objects',fr:'livre',zh:'书'},
+ {id:'d',unite:1,partie:1,group:'Objects',fr:'stylo',zh:'笔'},
+ {id:'e',unite:1,partie:2,group:'Food',fr:'pain',zh:'面包'},
+ {id:'f',unite:2,partie:1,group:'Travel',fr:'train',zh:'火车'},
+];
+function rate(s,id,kind){S.toggle(s,id);S.vote(s,id,kind);}
+test('hidden rating rejected and repeated/changed ratings count once per round',()=>{const s=S.create(bank,'A2');assert.equal(s.level,'A2');assert.equal(S.vote(s,'a','good'),false);rate(s,'a','good');assert.equal(S.vote(s,'a','good'),false);S.vote(s,'a','bad');assert.deepEqual(s.stats.a,{good:0,bad:1});});
+test('any Part can be tested without passing earlier Parts',()=>{const s=S.create(bank);assert.ok(S.selectPart(s,bank,'U2P1'));assert.equal(S.active(s).part,'U2P1');assert.equal(s.current,0);S.pass(s,bank);assert.equal(s.current,1);assert.equal(s.mastered.U1P1,undefined);assert.equal(S.active(s).part,'U1P1');});
+test('unfinished Part resumes opened words, ratings and group',()=>{const s=S.create(bank);const first=S.active(s).id;rate(s,'a','good');S.active(s).group=1;S.selectPart(s,bank,'U1P2');S.selectPart(s,bank,'U1P1');assert.equal(S.active(s).id,first);assert.equal(S.active(s).group,1);assert.equal(S.active(s).votes.a,'good');assert.equal(S.active(s).opened.a,true);});
+test('invalid Part and same unfinished Part do not create unwanted rounds',()=>{const s=S.create(bank);assert.equal(S.selectPart(s,bank,'U99P1'),false);assert.equal(S.selectPart(s,bank,'U1P1'),false);assert.equal(s.attempts.length,1);});
+test('completed retake does not revive an older abandoned round',()=>{const s=S.create(bank);rate(s,'a','bad');S.repeat(s,bank);rate(s,'a','good');S.pass(s,bank);S.selectPart(s,bank,'U1P1');assert.equal(S.active(s).round,3);assert.deepEqual(S.active(s).votes,{});assert.deepEqual(s.stats.a,{good:1,bad:1});});
+test('retake a passed Part accumulates counts and keeps prior mastery',()=>{const s=S.create(bank);rate(s,'a','good');S.pass(s,bank);S.selectPart(s,bank,'U1P1');assert.equal(S.active(s).round,2);assert.deepEqual(S.active(s).votes,{});rate(s,'a','bad');assert.deepEqual(s.stats.a,{good:1,bad:1});assert.ok(s.mastered.U1P1);S.repeat(s,bank);rate(s,'a','good');assert.deepEqual(s.stats.a,{good:2,bad:1});assert.equal(S.active(s).round,3);});
+test('full completion still permits fresh retesting and scoring',()=>{const s=S.create(bank);for(let i=0;i<3;i++)S.pass(s,bank);assert.ok(s.completed);const part=S.active(s).part;S.repeat(s,bank);assert.equal(S.active(s).part,part);const id=S.active(s).ids[0];rate(s,id,'bad');assert.equal(s.stats[id].bad,1);assert.ok(s.completed);});
+test('default repeat returns complete source order with translations hidden',()=>{const s=S.create(bank);S.repeat(s,bank);assert.deepEqual(S.active(s).ids,['a','b','c','d']);assert.deepEqual(S.active(s).opened,{});assert.equal(S.active(s).shuffled,false);});
+test('randomization changes only order within individual complete themes',()=>{const original=JSON.stringify(bank),s=S.create(bank);S.repeat(s,bank,{shuffle:true,rng:()=>0});assert.deepEqual(S.active(s).ids,['b','a','d','c']);assert.deepEqual(S.groups(bank,S.active(s)).map(g=>g.ids),[['b','a'],['d','c']]);assert.equal(JSON.stringify(bank),original);assert.equal(new Set(S.active(s).ids).size,4);});
+test('automatic pass requires every word judged correct',()=>{const s=S.create(bank);rate(s,'a','good');assert.equal(S.pass(s,bank,'automatic'),false);for(const id of ['b','c','d'])rate(s,id,'good');assert.ok(S.perfect(s));assert.ok(S.pass(s,bank,'automatic'));assert.equal(s.mastered.U1P1.reason,'automatic');assert.equal(S.active(s).part,'U1P2');});
+test('later automatic retake cannot erase original manual mastery',()=>{const s=S.create(bank);S.pass(s,bank);S.selectPart(s,bank,'U1P1');for(const id of S.active(s).ids)rate(s,id,'good');const retake=S.active(s);S.pass(s,bank,'automatic');s.view=s.attempts.indexOf(retake);S.vote(s,'a','bad');assert.ok(s.mastered.U1P1);assert.equal(s.mastered.U1P1.reason,'manual');});
+test('two books with shared word IDs keep independent counters',()=>{const a=S.create(bank),b=S.create(bank);rate(a,'a','good');assert.equal(b.stats.a,undefined);assert.deepEqual(S.active(b).votes,{});});
+test('Part statistics include untested words and changed votes with exact totals',()=>{const s=S.create(bank);rate(s,'a','good');S.repeat(s,bank);rate(s,'a','bad');const p=S.partStatistics(s,bank,'U1P1');assert.equal(p.entries.length,4);assert.equal(p.rounds,2);assert.equal(p.judged,1);assert.equal(p.good,1);assert.equal(p.bad,1);assert.equal(p.entries.find(e=>e.id==='b').good,0);});
+test('settings default to source order, saved preferences use their own key',()=>{const data=new Map([['edito-atelier:v1:guest','untouched']]);const storage={getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)};assert.deepEqual(S.loadSettings(storage),{layout:'classic',shuffle:false});S.saveSettings(storage,{layout:'right',shuffle:true});assert.deepEqual(S.loadSettings(storage),{layout:'right',shuffle:true});assert.equal(data.get('edito-atelier:v1:guest'),'untouched');data.set(S.SETTINGS_KEY,'bad');assert.deepEqual(S.loadSettings(storage),{layout:'classic',shuffle:false});});

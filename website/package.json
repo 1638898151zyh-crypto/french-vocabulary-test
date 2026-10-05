@@ -1,6 +1,37 @@
 {
- "name":"edito-b1-atelier","version":"1.0.0","private":true,"type":"module",
- "scripts":{"dev":"vite --host 0.0.0.0","build":"vite build","test":"node scripts/test.mjs","typecheck":"tsc --noEmit","test:import":"node scripts/test-vocabulary-import.mjs","test:study":"node scripts/test-preview-study.mjs","test:navigation":"node scripts/test-preview-navigation.mjs","test:account":"node scripts/test-account-session.mjs","test:production":"node scripts/test-multi-production.mjs","test:profile":"node scripts/test-account-profile.mjs"},
- "dependencies":{"react":"^19.2.0","react-dom":"^19.2.0","lucide-react":"^0.468.0","@netlify/identity":"latest","@netlify/blobs":"latest","@netlify/functions":"latest","read-excel-file":"9.3.10"},
- "devDependencies":{"vite":"latest","@vitejs/plugin-react":"latest","@netlify/vite-plugin":"latest","typescript":"latest","@types/node":"latest","jsdom":"^30.1.1","netlify-cli":"latest"}
+  "name": "edito-b1-atelier",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:import": "node scripts/test-vocabulary-import.mjs",
+    "test:study": "node scripts/test-preview-study.mjs",
+    "test:navigation": "node scripts/test-preview-navigation.mjs",
+    "test:account": "node scripts/test-account-session.mjs",
+    "test:production": "node scripts/test-multi-production.mjs",
+    "test:profile": "node scripts/test-account-profile.mjs",
+    "test:pwa": "node scripts/test-pwa.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "lucide-react": "^0.468.0",
+    "@netlify/identity": "latest",
+    "@netlify/blobs": "latest",
+    "@netlify/functions": "latest",
+    "read-excel-file": "9.3.10"
+  },
+  "devDependencies": {
+    "vite": "latest",
+    "@vitejs/plugin-react": "latest",
+    "@netlify/vite-plugin": "latest",
+    "typescript": "latest",
+    "@types/node": "latest",
+    "jsdom": "^30.1.1",
+    "netlify-cli": "latest"
+  }
 }

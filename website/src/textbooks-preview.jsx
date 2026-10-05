@@ -20,6 +20,7 @@ import {Home,SettingsAndBackup,LibraryStatistics,ReviewQuiz,DailyIntro} from './
 import {createDaily,createPractice,reviewAction,eligible,validDaily,day} from './preview-review.js';
 import {fullBackup,mainBackup,readBackup,downloadJSON} from './preview-backup.js';
 import {AccountMenu,AccountAvatar} from './account-menu.jsx';
+import {PwaStatus} from './pwa-ui.jsx';
 
 // Separate preview. Imported banks and settings use their own keys; learning stays in memory.
 const core = Study;
@@ -52,7 +53,7 @@ function App({production=false}) {
   const learning=useMultiLearning(production);
   const [auth,setAuth]=useState(false),[switchingAccount,setSwitchingAccount]=useState(false);
   function closeAccount(){setAuth(false);setSwitchingAccount(false);}
-  function openAccount(switching=false){setSwitchingAccount(switching);setAuth(true);}
+  function openAccount(switching=false){if(navigator.onLine===false){setToast("账号登录与修改资料需要联网，当前检测记录会保存在本机。");return;}setSwitchingAccount(switching);setAuth(true);}
   useEffect(()=>{if(learning.authCallback?.type==='recovery'||learning.authCallback?.type==='invite')setAuth(true);},[learning.authCallback]);
   const [library]=useState(()=>{try{return loadImportedLibrary(window.localStorage);}catch{return {books:[],error:'浏览器无法保存词库，可取消记住词库临时使用。'};}});
   const [books,setBooks]=useLearningSlice(learning,'books',()=>[...initialBooks.map(b=>library.books.find(saved=>saved.id===b.id)||b),...library.books.filter(b=>!initialBooks.some(i=>i.id===b.id))],production);
@@ -152,17 +153,18 @@ function App({production=false}) {
       <div className="dp-nav-label">MON ESPACE<span>学习空间</span></div>
       <nav aria-label="主要导航">{nav.map(([id,label,Icon])=><button key={id} className={`dp-nav-item ${navigationPage(page)===id?'active':''}`} onClick={()=>go(id)}><Icon size={19}/><span>{id==='settings'?'设置与备份':label}</span>{navigationPage(page)===id&&<span className="nav-dot"/>}</button>)}</nav>
       <div className="dp-side-course"><div className="side-course-label">当前学习课本<Bookmark size={13}/></div><div className={`side-course-icon ${book.color}`}><BookOpen size={24}/></div><strong>{book.name}</strong><small>{ready(book)?`${book.bank.length} 词 · 独立学习进度`:'词库尚未添加'}</small><button onClick={()=>go('books')}>查看我的课本<ArrowUpRight size={14}/></button></div>
-      <div className="dp-side-bottom">{!production&&<button onClick={()=>setNotes(true)}><Info size={17}/>设计说明</button>}<div className="dp-user">{production&&learning.user?<AccountAvatar user={learning.user}/>:<span><GraduationCap size={20}/></span>}<div><strong>{production?(learning.user?.name||'游客学习'):'预览模式'}</strong><small>{production?({loading:'正在恢复记录',local:'已保存到本机',memory:'保存受限，请导出备份',pending:'等待云端同步',saving:'正在同步',cloud:'已同步到云端',offline:'本机保存，等待同步',conflict:'同步冲突，请到设置处理'})[learning.sync]:'体验课本切换与检测'}</small></div></div></div>
+      <div className="dp-side-bottom">{!production&&<button onClick={()=>setNotes(true)}><Info size={17}/>设计说明</button>}<div className="dp-user">{production&&(learning.user||learning.offlineAccount)?<AccountAvatar user={learning.user||learning.offlineAccount}/>:<span><GraduationCap size={20}/></span>}<div><strong>{production?(learning.user?.name||learning.offlineAccount?.name||'游客学习'):'预览模式'}</strong><small>{production?({loading:'正在恢复记录',local:'已保存到本机',memory:'保存受限，请导出备份',pending:'等待云端同步',saving:'正在同步',cloud:'已同步到云端',offline:'本机保存，等待同步','offline-account':'离线账号记录 · 未验证登录',conflict:'同步冲突，请到设置处理'})[learning.sync]:'体验课本切换与检测'}</small></div></div></div>
     </aside>
     <main className="dp-main">
       <header className="dp-topbar"><div className="dp-breadcrumb"><span>学习空间</span><ChevronRight size={13}/><strong>{pageTitles[page]}</strong></div><div className="dp-top-right">
         <div className="dp-switch-wrap" ref={switchRef}>
           <button className="dp-switch" aria-label="切换当前课本" aria-expanded={switcher} aria-haspopup="menu" onClick={()=>setSwitcher(!switcher)}><span className={`switch-cover ${book.color}`}><BookOpen size={15}/></span><span><small>当前课本</small><strong>{book.name}</strong></span><ChevronDown size={15}/></button>
           {switcher&&<div className="dp-switch-menu" role="menu" aria-label="选择课本"><div className="switch-menu-label">切换学习课本<span>进度分别保存</span></div>{books.map(b=><button key={b.id} role="menuitem" onClick={()=>choose(b.id)} className={bookId===b.id?'selected':''}><span className={`switch-cover ${b.color}`}><BookOpen size={17}/></span><span><strong>{b.name}</strong><small>{bookStatus(b)}</small></span>{bookId===b.id&&<Check size={16}/>}</button>)}<button className="switch-manage" role="menuitem" onClick={()=>go('books')}><Library size={15}/>管理我的课本<ArrowRight size={14}/></button></div>}
-        </div><AccountMenu user={production?learning.user:previewAccount} demo={!production} loading={production&&learning.sync==='loading'} onLogin={()=>production?openAccount():setPreviewAccountDialog(true)} onSwitch={()=>production?openAccount(true):setPreviewAccountDialog(true)} onSettings={()=>go('settings')} onLogout={async()=>{if(production){await logout();learning.setMessage('已退出，恢复游客学习记录。');}else{setPreviewAccount(null);setToast('已退出演示账号。');}}}/>
+        </div><AccountMenu offline={production&&!!learning.offlineAccount} user={production?(learning.user||learning.offlineAccount):previewAccount} demo={!production} loading={production&&learning.sync==='loading'} onLogin={()=>production?openAccount():setPreviewAccountDialog(true)} onSwitch={()=>production?openAccount(true):setPreviewAccountDialog(true)} onSettings={()=>go('settings')} onLogout={async()=>{if(production){if(learning.offlineAccount){learning.returnToGuest();learning.setMessage('已返回游客记录。原账号的离线记录保留。');}else{await logout();learning.setMessage('已退出，恢复游客学习记录。');}}else{setPreviewAccount(null);setToast('已退出演示账号。');}}}/>
       </div></header>
       <div className="dp-content">
-        {page==='home'&&<Home books={books} book={book} state={state} go={go} titleFor={titleFor}/>}
+        {production&&<PwaStatus/>}
+        {page==='home'&&<Home production={production} books={books} book={book} state={state} go={go} titleFor={titleFor}/>}
         {page==='books'&&<>
           <div className="dp-page-heading"><div><div className="dp-eyebrow">MA BIBLIOTHÈQUE</div><h1>我的课本<span>每一本，都有自己的旅程。</span></h1><p>选择一本课本，继续你的词汇学习。切换课本时，各自的进度与记录都会保留。</p></div></div>
           {library.error&&<div className="vi-message"><Info size={17}/><span>{library.error}</span></div>}<section className="dp-featured"><div className="featured-copy"><span className="dp-eyebrow"><span className="green-dot"/>当前学习课本</span><h2>{book.name}<span>{book.edition}</span></h2><p>{ready(book)?(state.completed?'这本课本已完成。回顾已学词汇，让记忆更牢固。':`从 ${shortPart(currentPart)} 开始，${currentTitle?.zh||currentTitle?.fr||'继续你的学习'}。`):'添加这本课本的词库后，就可以开始检测。'}</p><div className="featured-meta">{ready(book)?<><span><Layers size={14}/>{book.id==='edito-b1'?'12 个单元':`${new Set(book.bank.map(e=>e.unite)).size} 个单元`}</span><span>{totalParts} 个 Part</span><span>{book.bank.length.toLocaleString()} 条词汇</span></>:<span><Upload size={14}/>词库待添加</span>}</div><div className="featured-actions"><button className="dp-button primary" onClick={()=>go('study')}>{ready(book)?'进入课本检测':'查看课本详情'}<ArrowRight size={15}/></button><button className="dp-text-button" onClick={()=>go('records')}>查看本书记录<ChevronRight size={14}/></button></div></div><div className="featured-right"><div className="featured-progress"><span>本书预览进度</span><strong>{state?.current||0}<small> / {totalParts||'—'} Part</small></strong><div className="dp-track"><span style={{width:totalParts?(state?.current||0)/totalParts*100+'%':'0%'}}/></div><small>切换课本，进度分别保留</small></div><Cover book={book}/></div></section>

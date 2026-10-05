@@ -2,23 +2,26 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import {getUser,getSettings,handleAuthCallback,onAuthChange,refreshSession} from '@netlify/identity';
 import {freshMulti as fresh,restoreMulti as restoreBundle,migrateClassic,touchMulti} from './multi-learning.js';
 import {rememberIdentitySession,restoreIdentitySession} from './identity-session';
+import {rememberLocalAccount,readLocalAccount} from './offline-account.js';
 const prefix='franmo-atelier:v2:';
 function readCache(key){try{let raw=localStorage.getItem(key);if(!raw){const legacy=JSON.parse(localStorage.getItem(key.replace(prefix,'edito-atelier:v1:'))||'null');if(!legacy)return null;const migrated=migrateClassic(legacy.bundle);const theme=localStorage.getItem('edito-theme');if(migrated&&['light','dark','system'].includes(theme))migrated.theme=theme;return migrated?{bundle:migrated,dirty:true,etag:null}:{corrupt:true};}const data=JSON.parse(raw);return {...data,bundle:restoreBundle(data.bundle),corrupt:!restoreBundle(data.bundle)};}catch{return {corrupt:true};}}
 export function useMultiLearning(enabled=true){
  const [bundle,setBundle]=useState(()=>enabled?readCache(prefix+'guest')?.bundle||fresh():fresh());
- const [user,setUser]=useState(null),[settings,setSettings]=useState(null),[sync,setSync]=useState('loading'),[message,setMessage]=useState(''),[authCallback,setAuthCallback]=useState(null);
+ const [user,setUser]=useState(null),[offlineAccount,setOfflineAccount]=useState(null),[settings,setSettings]=useState(null),[sync,setSync]=useState('loading'),[message,setMessage]=useState(''),[authCallback,setAuthCallback]=useState(null);
  const scope=useRef(prefix+'guest'),ready=useRef(false),etag=useRef(null),clean=useRef(null),current=useRef(bundle),uid=useRef(null),writing=useRef(false),blocked=useRef(false),generation=useRef(0),storageBroken=useRef(false);
- current.current=bundle;
+ const localOwner=useRef(null),currentUser=useRef(null);localOwner.current=offlineAccount;currentUser.current=user;current.current=bundle;
  const cache=useCallback((data,dirty)=>{
   if(storageBroken.current)return false;
   try{localStorage.setItem(scope.current,JSON.stringify({bundle:data,dirty,etag:etag.current}));return true;}catch{setSync('memory');return false;}
  },[]);
- const load=useCallback(async nextUser=>{
+ const load=useCallback(async(nextUser,localAccount=null)=>{
   const turn=++generation.current;ready.current=false;blocked.current=false;uid.current=nextUser?.id||null;setUser(nextUser);
-  scope.current=prefix+(nextUser?'user:'+nextUser.id:'guest');
+  setOfflineAccount(localAccount);localOwner.current=localAccount;currentUser.current=nextUser;
+  if(!localAccount)rememberLocalAccount(nextUser);
+  scope.current=prefix+(nextUser||localAccount?'user:'+(nextUser||localAccount).id:'guest');
   const local=readCache(scope.current);storageBroken.current=!!local?.corrupt;
   let data=local?.bundle||fresh();etag.current=local?.etag||null;clean.current=local?.dirty?null:data.generation;
-  setSync(nextUser?'loading':'local');
+  setSync(nextUser?'loading':localAccount?'offline-account':'local');
   if(local?.corrupt)setMessage('原本机记录无法读取，已保留原文件。请导入有效备份；当前记录仅暂存。');
   if(nextUser){
    try{
@@ -36,11 +39,12 @@ export function useMultiLearning(enabled=true){
  },[]);
  const saveCloud=useCallback(async()=>{
   if(!ready.current||!uid.current||blocked.current||writing.current||clean.current===current.current.generation)return;
-  writing.current=true;const owner=uid.current,data=current.current,base=etag.current;
+  if(navigator.onLine===false){setSync('offline');return;}
+  writing.current=true;const owner=uid.current,data=current.current,base=etag.current,turn=generation.current;
   setSync('saving');
   try{
    const response=await fetch('/api/multi-progress',{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({data,etag:base})});
-   if(owner!==uid.current)return;
+   if(owner!==uid.current||turn!==generation.current)return;
    if(response.status===409){blocked.current=true;setSync('conflict');setMessage('另一台设备已更新。请导出本机备份，再读取云端记录。');return;}
    if(!response.ok)throw Error('同步未完成');
    const result=await response.json();etag.current=result.etag;clean.current=data.generation;
@@ -53,19 +57,27 @@ export function useMultiLearning(enabled=true){
   let alive=true;
   (async()=>{
    try{const result=/(access_token|confirmation_token|recovery_token|invite_token|email_change_token)=/.test(location.hash)?await handleAuthCallback():null;if(result&&alive)setAuthCallback(result);}catch{if(alive)setMessage('账号验证链接未生效，请重新获取验证邮件。');}
-   const restored=await restoreIdentitySession({getUser,refreshSession});if(alive)await load(restored);
+   if(navigator.onLine===false){const last=readLocalAccount();if(alive){await load(null,last);setSettings(false);}return;}
+   try{const restored=await restoreIdentitySession({getUser,refreshSession});if(alive)await load(restored);}catch{if(alive){await load(null,readLocalAccount());setMessage('账号服务暂不可用，先使用本机记录；联网后可重新登录。');}}
    try{const config=await getSettings();if(alive)setSettings(config);}catch{if(alive)setSettings(false);}
   })();
-  const unsubscribe=onAuthChange((_event,next)=>{if(next)rememberIdentitySession();if(alive){if((next?.id||null)!==uid.current)load(next);else if(next)setUser(next);}});
-  return()=>{alive=false;unsubscribe();};
+  const unsubscribe=onAuthChange((_event,next)=>{if(next){rememberIdentitySession();rememberLocalAccount(next);}if(alive){if((next?.id||null)!==uid.current||next&&localOwner.current)load(next);else if(next)setUser(next);else if(/logout/i.test(_event)){rememberLocalAccount(null);load(null);}}});
+  const reconnect=async()=>{
+   if(!alive)return;
+   if(!localOwner.current&&!uid.current){try{const config=await getSettings();if(alive)setSettings(config);}catch{}return;}
+   cache(current.current,clean.current!==current.current.generation);
+   try{const next=await restoreIdentitySession({getUser,refreshSession});if(!alive)return;await load(next);if(!next)setMessage('登录已失效。原账号的离线记录仍保存在本机，请重新登录原账号后同步。');const config=await getSettings();if(alive)setSettings(config);}catch{if(alive)setMessage('暂时无法恢复账号连接，本机记录保留，请稍后重试。');}
+  };
+  window.addEventListener('online',reconnect);
+  return()=>{alive=false;unsubscribe();window.removeEventListener('online',reconnect);};
  },[load,enabled]);
  useEffect(()=>{
-  if(!enabled||!ready.current)return;
+  if(!enabled||!ready.current||bundle!==current.current)return;
   const dirty=clean.current!==bundle.generation;
   const saved=cache(bundle,dirty);
-  if(!user)setSync(saved?'local':'memory');
+  if(!user)setSync(saved?(offlineAccount?'offline-account':'local'):'memory');
   if(user&&dirty&&!blocked.current){const timer=setTimeout(saveCloud,650);return()=>clearTimeout(timer);}
- },[bundle,user,cache,saveCloud,enabled]);
+ },[bundle,user,offlineAccount,cache,saveCloud,enabled]);
  // If an edit arrives during a request, serialize the newer snapshot after it completes.
  useEffect(()=>{if(enabled&&sync==='cloud'&&clean.current!==current.current.generation){const timer=setTimeout(saveCloud,100);return()=>clearTimeout(timer);}},[sync,bundle,saveCloud,enabled]);
  const update=useCallback(fn=>setBundle(old=>fn(old)),[]);
@@ -75,7 +87,7 @@ export function useMultiLearning(enabled=true){
   const cloud=await response.json(),data=restoreBundle(cloud.data);if(!data)throw Error('云端尚无有效记录');
   etag.current=cloud.etag;clean.current=data.generation;blocked.current=false;storageBroken.current=false;setBundle(data);setSync('cloud');setMessage('已读取最新云端记录。');
  },[user]);
- return {bundle,update,adopt,user,settings,sync,message,setMessage,saveCloud,pull,authCallback,setAuthCallback,guest:()=>readCache(prefix+'guest')?.bundle};
+ return {bundle,update,adopt,user,offlineAccount,settings,sync,message,setMessage,saveCloud,pull,authCallback,setAuthCallback,returnToGuest:()=>{rememberLocalAccount(null);load(null);},guest:()=>readCache(prefix+'guest')?.bundle};
 }
 
 export function useLearningSlice(learning,key,initialize,enabled){

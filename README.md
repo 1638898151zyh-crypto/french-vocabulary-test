@@ -4,7 +4,9 @@
 
 ## 在线学习网站
 
-[打开法语词汇学习网站](https://franmotest.netlify.app/) · [网站介绍与使用教程](https://franmotest.netlify.app/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
+**[打开学习网站](https://franmotest.netlify.app/)**：https://franmotest.netlify.app/
+
+[网站介绍与使用教程](https://franmotest.netlify.app/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
 
 网站主导航为 **首页、课本过关、每日检测、词库统计、设置**。首页展示当前课本进度、已自评词汇与累计判定，并提供“我的课本”入口；教程可从首页和设置打开。
 

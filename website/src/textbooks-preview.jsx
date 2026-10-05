@@ -7,6 +7,7 @@ import partTitles from '../../assets/part-titles.json';
 import themeTitles from '../../assets/theme-titles.json';
 import './textbooks-preview.css';
 import './navigation-preview.css';
+import './mobile-interactions.css';
 import {loadImportedLibrary,saveImportedLibrary,sameVocabulary,makeImportedBook} from './vocabulary-import.js';
 import {ImportVocabulary,VocabularyGuide} from './vocabulary-import-ui.jsx';
 import {initialBooks} from './books.js';

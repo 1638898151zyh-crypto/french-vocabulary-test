@@ -1,0 +1,63 @@
+/* Quiz rows are tap controls; dictionary text remains selectable. */
+.study-word-row,
+.study-word-row * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.study-word-row {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .dp-top-right {
+    min-width: 0;
+    max-width: calc(100% - 56px);
+    gap: 8px;
+  }
+  .dp-switch-wrap {
+    min-width: 0;
+  }
+  .dp-switch {
+    min-width: 0;
+    max-width: 190px;
+  }
+  .dp-switch > span:nth-child(2) {
+    min-width: 0;
+  }
+  .dp-switch strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dp-switch-menu {
+    position: fixed;
+    left: max(12px, env(safe-area-inset-left, 0px));
+    right: max(12px, env(safe-area-inset-right, 0px));
+    top: calc(80px + env(safe-area-inset-top, 0px));
+    width: auto;
+    max-width: none;
+    max-height: calc(100vh - 168px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 168px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    z-index: 100;
+  }
+  .dp-shell:not(.dp-production) .dp-switch-menu {
+    top: calc(115px + env(safe-area-inset-top, 0px));
+    max-height: calc(100vh - 203px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    max-height: calc(100dvh - 203px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  }
+  .dp-switch-menu > button {
+    min-height: 54px;
+  }
+  .dp-switch-menu > button > span:nth-child(2) {
+    min-width: 0;
+  }
+  .dp-switch-menu strong {
+    overflow-wrap: anywhere;
+  }
+}

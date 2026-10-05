@@ -1,6 +1,6 @@
-# 法语词汇检测 / French Vocabulary Test
+# Franmotest · 法语词汇检测
 
-按课本主题学习、自测和复习法语词汇。仓库包含多课本学习网站，以及 **1.0.8** 版 ChatGPT 插件源码、三个 skill、自包含 HTML 卡片和 MCP 服务。
+**Franmotest = Français（法语）＋ mots（单词）＋ test（检测）**。按课本主题学习、自测和复习法语词汇。仓库包含多课本学习网站，以及 **1.0.8** 版 ChatGPT 插件源码、三个 skill、自包含 HTML 卡片和 MCP 服务。
 
 ## 在线学习网站
 

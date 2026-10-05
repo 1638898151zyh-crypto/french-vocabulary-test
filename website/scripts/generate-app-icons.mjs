@@ -23,4 +23,4 @@ function render(size,maskable=false){
  return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',header),chunk('IDAT',deflateSync(raw)),chunk('IEND',Buffer.alloc(0))]);
 }
 for(const [name,size,maskable] of [['icon-192.png',192,false],['icon-512.png',512,false],['icon-maskable-512.png',512,true],['apple-touch-icon.png',180,true]])writeFileSync(new URL(name,directory),render(size,maskable));
-console.log('Generated four Franmo app icons.');
+console.log('Generated four Franmotest app icons.');

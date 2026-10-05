@@ -1,4 +1,4 @@
-# Franmo 1.0 · 法语词汇学习网站 / Édito Atelier
+# Franmotest 1.0 · 法语词汇学习网站 / Édito Atelier
 
 正式网站：**https://franmotest.netlify.app/**。React/Vite 多课本法语→中文自测网站，游客本机保存，登录后通过 Netlify Identity 与 Blobs 同步词库和学习记录。
 

@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Franmo · 法语词汇学习",
-  "short_name": "Franmo",
+  "name": "Franmotest · 法语词汇学习",
+  "short_name": "Franmotest",
   "description": "按课本主题学习法语词汇，翻词自测、每日复习与学习统计，支持离线检测。",
   "lang": "zh-CN",
   "start_url": "/#/home",

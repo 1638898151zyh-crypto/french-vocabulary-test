@@ -46,6 +46,11 @@ test('local account selector stores display data only, rejects invalid records a
 const auth=`export const getUser=async()=>{window.authReads++;return window.testIdentity;},refreshSession=async()=>{window.authReads++;},getSettings=async()=>({disableSignup:false}),handleAuthCallback=async()=>null,onAuthChange=()=>()=>{},login=async()=>{},signup=async()=>({}),logout=async()=>{},requestPasswordRecovery=async()=>{},updateUser=async()=>{},acceptInvite=async()=>{};`;
 const ui=await build({entryPoints:['src/site.jsx'],bundle:true,write:false,format:'iife',platform:'browser',define:{'import.meta.env.PROD':'false'},loader:{'.css':'empty'},logLevel:'silent',plugins:[{name:'identity-fixture',setup(b){b.onResolve({filter:/^@netlify\/identity$/},()=>({path:'identity',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:auth,loader:'js'}));}}]});
 const pause=(ms=100)=>new Promise(resolve=>setTimeout(resolve,ms));
+async function waitForLocalAccount(w){
+ const deadline=Date.now()+2000;
+ while(Date.now()<deadline){if(w.document.querySelector('.dp-user')?.textContent.includes('离线账号记录'))return;await pause(25);}
+ assert.fail('The offline account did not finish rendering within 2 seconds');
+}
 function offlineBrowser(withAccount=true){
  const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test/#/home',runScripts:'dangerously',pretendToBeVisual:true}),w=dom.window;
  w.structuredClone=structuredClone;w.scrollTo=()=>{};w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});Object.defineProperty(w.navigator,'onLine',{configurable:true,value:false});
@@ -59,7 +64,7 @@ function offlineBrowser(withAccount=true){
 }
 async function voteAgain(w){w.location.hash='/study';await pause();const doc=w.document;if(doc.querySelector('.dp-word-trigger').getAttribute('aria-expanded')!=='true')doc.querySelector('.dp-word-trigger').click();await pause();doc.querySelector('.dp-votes .bad').click();await pause();}
 test('offline restart restores local account scores without authentication or network calls; edits remain in its scope',async()=>{
- const {dom,w,guest}=offlineBrowser();try{await pause();assert.equal(w.authReads,0);assert.equal(w.requests.length,0);assert.match(w.document.querySelector('.dp-user').textContent,/Alain.*离线账号记录/);assert.deepEqual([...w.document.querySelectorAll('.np-activity strong')].map(n=>n.textContent),['1','1']);
+ const {dom,w,guest}=offlineBrowser();try{await waitForLocalAccount(w);assert.equal(w.authReads,0);assert.equal(w.requests.length,0);assert.match(w.document.querySelector('.dp-user').textContent,/Alain.*离线账号记录/);assert.deepEqual([...w.document.querySelectorAll('.np-activity strong')].map(n=>n.textContent),['1','1']);
  await voteAgain(w);const saved=JSON.parse(w.localStorage.getItem('franmo-atelier:v2:user:test-user'));assert.ok(saved.dirty);assert.equal(Object.values(saved.bundle.progress['edito-b1'].stats)[0].bad,1);assert.equal(w.localStorage.getItem('franmo-atelier:v2:guest'),guest);assert.equal(w.requests.length,0);
  w.document.querySelector('.ac-trigger').click();await pause();assert.match(w.document.querySelector('.ac-profile').textContent,/需联网验证/);w.document.querySelector('.ac-logout').click();await pause();assert.equal(w.localStorage.getItem(LAST_ACCOUNT),null);assert.ok(w.localStorage.getItem('franmo-atelier:v2:user:test-user'));assert.ok(w.document.querySelector('.ac-trigger.guest'));
  }finally{dom.window.close();}

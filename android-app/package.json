@@ -1,0 +1,14 @@
+{
+  "name": "franmotest-android",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Franmotest Android app using a Trusted Web Activity",
+  "scripts": {
+    "generate": "node scripts/generate.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "devDependencies": {
+    "@bubblewrap/cli": "1.25.0"
+  }
+}

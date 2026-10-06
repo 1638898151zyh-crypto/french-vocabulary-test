@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.netlify.franmotest",
+      "sha256_cert_fingerprints": [
+        "47:02:8B:8D:14:0C:1B:06:F9:8D:9F:9C:73:94:93:94:87:E1:04:8E:18:2A:D9:C8:B6:6F:C4:DB:61:2C:1F:CF"
+      ]
+    }
+  }
+]

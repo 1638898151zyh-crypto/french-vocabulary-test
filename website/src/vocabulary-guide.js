@@ -1,4 +1,5 @@
 import {VOCABULARY_FIELDS} from './vocabulary-import.js';
+import {saveNativeText} from './native-app.js';
 
 export const AI_VOCABULARY_PROMPT = `请根据我上传的法语课本 PDF，制作可导入“法语词汇学习网站”的完整词库。
 课本名称：[填写]；级别：[A1/A2/B1/B2/C1/C2]；版本：[填写]。
@@ -26,6 +27,7 @@ export const GUIDE_STEPS = [
 export function guideMarkdown(production=false){return `# 从课本 PDF 生成并导入法语词库\n\n${GUIDE_STEPS.map((s,i)=>`## ${i+1}. ${s.title}\n\n${s.body}`).join('\n\n')}\n\n## 文件与保存说明\n\n支持未加密 .xlsx、UTF-8 .csv、词条数组 .json；每文件最多 8 MB、10,000 词。6 个核心列必填，其余 8 列建议保留。${production?'导入文件在浏览器中解析。游客词库与记录保存在本机，登录后随账号同步到其他设备。清理浏览器数据会移除游客记录，请保留原文件并定期导出备份。':'导入在浏览器本机解析，不上传文件。记住词库仅保存到本浏览器，最多 30 本，不提供云同步，请保留原文件。当前设计预览的检测进度仅在本次页面内存中，刷新会重置。'}相同词库会打开已有课本，不覆盖进度。\n\n## 14 列标准\n\n${VOCABULARY_FIELDS.map(f=>`- ${f.label}${f.required?'（必填）':'（建议）'}：${f.description}`).join('\n')}\n\n## 可复制的 AI 提示词\n\n${AI_VOCABULARY_PROMPT}\n\n## 常见问题\n\nPDF 不能直接导入：先用 AI 生成词库文件。缺少核心列、重复 ID 或章节编号无效：按提示修复并重新选择。来源或 IPA 缺失不会阻止检测，但需要补查。标准样例的“每日抽题规则”不参与导入。\n`;}
 
 export function downloadText(filename,content,type='text/plain;charset=utf-8'){
+  if(saveNativeText(filename,content,type))return;
   const url=URL.createObjectURL(new Blob([content],{type}));
   const link=document.createElement('a');link.href=url;link.download=filename;link.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);

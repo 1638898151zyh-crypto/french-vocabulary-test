@@ -49,7 +49,7 @@ Part 与主题带中文标题。Édito B2 是待导入选项，“我的法语�
 
 完整说明见 [INSTALL.md](INSTALL.md)；发布附件位于 [GitHub Releases](https://github.com/Alain-0721/french-vocabulary-test/releases)。PWA 通过浏览器安装，Release 的 ZIP 是静态网站部署包。
 
-首页和设置也提供“下载安卓 APK”。[安卓 App](../android-app/README.md) 使用 Trusted Web Activity 访问正式网站，复用原有登录、检测与离线缓存；网站公开的 `/.well-known/assetlinks.json` 绑定应用包名与发布证书 SHA-256。APK 安装步骤见 [安卓安装说明](../android-app/INSTALL.md)。
+首页和设置也提供“下载安卓 APK”。[安卓 App](../android-app/README.md) 自带学习界面与三本完整词库，在原生 Activity 与系统 WebView 内运行，首次启动即可离线检测，无需调用外部浏览器；原账号可联网同步，游客可通过完整备份迁移；网站公开的 `/.well-known/assetlinks.json` 绑定应用包名与发布证书 SHA-256。APK 安装步骤见 [安卓安装说明](../android-app/INSTALL.md)。
 
 - **iPhone / iPad**：用 Safari 打开网站，点分享 → 添加到主屏幕 → 添加。
 - **安卓**：用 Chrome 打开，点安装应用，或在浏览器菜单选择安装应用 / 添加到主屏幕。

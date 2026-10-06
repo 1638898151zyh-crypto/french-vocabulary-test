@@ -8,7 +8,7 @@
 
 [网站介绍与使用教程](https://franmotest.netlify.app/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
 
-**[下载 Franmotest 1.0 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.0/Franmotest-1.0-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，需启用支持的浏览器（如 Chrome），首次联网准备词库后可离线检测。
+**[下载 Franmotest 1.0 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.0/Franmotest-1.0-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。
 
 网站主导航为 **首页、课本过关、每日检测、词库统计、设置**。首页展示当前课本进度、已自评词汇与累计判定，并提供“我的课本”入口；教程可从首页和设置打开。
 
@@ -34,7 +34,7 @@ Part 和主题提供法中双语标题。Édito B2 是待导入的课本选项�
 
 网站源码位于 [`website/`](website/README.md)，根目录 `netlify.toml` 提供 Netlify 构建配置。
 
-安卓 App 源码位于 [`android-app/`](android-app/README.md)，使用 Trusted Web Activity 访问同一正式网站。使用同一浏览器时可沿用账号及本机记录；更换浏览器可登录同步或导入备份。APK 经发布签名，网站通过 Digital Asset Links 关联应用；签名密钥与密码仅保存在本机，不进入仓库或 Release。
+安卓 App 源码位于 [`android-app/`](android-app/README.md)，通过原生 Activity 与系统 WebView 运行 APK 自带的页面与词库，学习过程无需调用浏览器。App 内导入与备份使用系统文件窗口；原账号可联网同步，游客通过完整备份迁移。APK 经发布签名，网站通过 Digital Asset Links 关联应用；签名密钥与密码仅保存在本机，不进入仓库或 Release。
 
 ## ChatGPT 插件功能
 

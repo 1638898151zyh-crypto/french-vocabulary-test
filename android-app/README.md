@@ -1,31 +1,41 @@
-# Franmotest 1.0 · Android
+# Franmotest 1.0 · 独立 Android App
 
-Franmotest 的 Android APK 使用 Google Bubblewrap 生成的 Trusted Web Activity，访问 https://franmotest.netlify.app/。应用包名为 `app.netlify.franmotest`，版本名 `1.0`、版本号 `1`，最低 Android API 23（Android 6.0）。
+Android APK 自带 React 学习界面与三本完整词库，通过原生 Activity 和 Android WebView 在应用内运行。移除了 TWA、Custom Tabs 和 Android Browser Helper，学习不依赖外部浏览器，首次启动即可离线检测。
 
-[安装与使用说明](INSTALL.md) · [下载 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.0/Franmotest-1.0-Android.apk)
+包名 `app.netlify.franmotest`，版本名 `1.0`，内部版本号 `2`，最低 Android 6.0（API 23）。同一发布签名允许覆盖升级此前版本。
 
-网页功能与学习数据仍在浏览器的同源空间中。支持的浏览器验证网站与应用发布证书后，以独立窗口显示页面；缺少支持的浏览器时退回 Custom Tabs。应用不额外加入通知、定位、支付或分析 SDK。
+[下载安装说明](INSTALL.md) · [下载 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.0/Franmotest-1.0-Android.apk)
 
-## 文件与构建
+## 界面、文件与账号
 
-- `twa-manifest.json`：应用名称、网站、图标、版本及发布证书指纹。
-- `app/`、`gradle/`、`gradlew*`：生成的标准 Android 工程。
-- `scripts/generate.mjs`：从应用配置生成工程和图标；使用 Maven Central 替换模板中已停用的 JCenter。
-- `scripts/build.mjs`：Windows 本地构建、签名，并校验 APK 证书、包名、版本和 ZIP 对齐。
-- `../website/public/.well-known/assetlinks.json`：网站与 APK 的证书关联，必须部署在正式网站，并以 JSON 返回。
+`MainActivity` 使用官方 `WebViewAssetLoader` 将 APK 内置资源映射到自有 HTTPS 域名。页面与脚本始终从安装包加载；仅 `/api/`、`/.netlify/identity/` 与 `/.netlify/functions/` 请求访问正式服务器。缺失的静态资源返回 404，不回退加载远程页面。原网站的 `@netlify/identity` 登录、持久会话、头像与云同步保留同源 Cookie 行为。
 
-构建工具为 JDK 17、Android SDK Platform 36、Build Tools 36.1.0 和 Gradle 8.11.1。先安装依赖：
+原生文件选择器支持词库和备份导入、头像选择；文件导出通过系统保存窗口写入用户指定位置。返回键先关闭弹窗或菜单，再返回上一页，首页连续返回退出。系统栏、刘海、键盘与深色外观由原生窗口处理。学习卡片保持现有无蓝色点击高亮设置。
+
+WebView 禁用文件 URL 访问、明文与混合内容、第三方 Cookie、自动弹窗与发布版调试；不加载外站学习页面。不申请存储、相机、定位等广泛权限。外部 HTTPS 或邮件链接仅由用户主动点击打开。Android App Links 使用正式网站已有证书关联，邮箱确认与找回密码链接可回到 App 中处理。
+
+App 数据与原浏览器数据分开。账号用户登录同步；游客通过完整备份迁移。不要假定覆盖旧版 TWA APK 能自动取得 Chrome 私有存储。
+
+## 构建
+
+需要 Node.js 22+、JDK 17、Android SDK Platform 36、Build Tools 36.1.0。Gradle wrapper 为 8.11.1，Android Gradle Plugin 为 8.9.1。先在 `../website` 安装 npm 依赖。
 
 ```powershell
+# 在 android-app 目录
 npm ci
-npm run generate
 npm run build
 ```
 
-本地构建脚本读取项目根目录 `.netlify/android-tools/config.json` 中的 `jdkPath` 和 `androidSdkPath`。签名文件保存在 `.netlify/android-signing/franmotest-release.jks`，密码文件为同目录 `password.json`（字段 `password`）。这些文件全部被 Git 忽略，签名目录的 Windows 权限限制为当前用户与 SYSTEM。请在私人位置备份密钥和密码，后续覆盖升级需沿用同一签名；不要上传它们到 GitHub 或 Release。
+`generate.mjs` 先以 Vite `android` 模式构建共享界面，复制到 `app/src/main/assets/public/`，确认内置三本词库且不包含网站 Service Worker。生成目录不提交到 Git。网页版正常构建仍提供 PWA。
 
-产物保存到 `.netlify/releases/android-1.0/`，包含发布 APK、安装说明、SHA-256 和证书/版本校验结果。新发布版本需增加 `appVersionCode`；更换签名密钥时须同步更新网站的证书关联文件。
+`build.mjs` 读取项目根目录 `.netlify/android-tools/config.json` 中的 `jdkPath` 与 `androidSdkPath`，生成 Release/Debug、运行 Android Lint，再对发布 APK 对齐、签名与校验。签名配置为 `app-config.json`，密码只从本机 `.netlify/android-signing/password.json` 读取。私有密钥与密码不进入仓库或 Release。请私下备份，未来升级需继续使用相同签名并增加内部版本号。
 
-也可在 Android Studio 打开本目录，使用自己的 SDK 和签名配置构建。Google Play 的 AAB 构建与上架需单独准备，不在此 APK 下载发布流程中。
+产物位于 `.netlify/releases/android-1.0/`。也可用 Android Studio 打开本目录构建。应用发布为 APK；Google Play 上架需另行准备 AAB 和商店资料。
 
-生成的 Android 模板和 Bubblewrap 依赖采用 Apache-2.0，模板保留原版权声明；网站与本项目原创代码许可见根目录 [LICENSE](../LICENSE)。
+```powershell
+# 在 website 目录，先构建 native assets
+node node_modules/vite/bin/vite.js build --mode android
+npm run test:android
+```
+
+AndroidX 和保留的 Gradle/icon 模板采用 Apache-2.0，原创代码许可见根目录 LICENSE；词库的教材数据许可与质量说明见 DATA_NOTICE.md。

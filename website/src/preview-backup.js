@@ -1,4 +1,5 @@
 import {validateEntries,makeImportedBook,vocabularySummary,sameVocabulary} from './vocabulary-import.js';
+import {downloadText} from './vocabulary-guide.js';
 import * as Study from './preview-study.js';
 import {D,V,practiceBank,eligible,restoreStudy,convertClassicMain} from './preview-review.js';
 
@@ -42,4 +43,4 @@ export function readBackup(raw,existing,current){
   if(main)return {books:existing,progress:{...current,[book.id]:main},bookId:book.id,secondary:{[book.id]:{daily:null,practice:null}},label:'原 Édito B1 网站 / 插件主进度'};
   throw Error('请选择有效的网站备份、旧版网站完整备份或插件主进度文件。');
 }
-export function downloadJSON(data,filename){const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+export function downloadJSON(data,filename){downloadText(filename,JSON.stringify(data,null,2),'application/json');}

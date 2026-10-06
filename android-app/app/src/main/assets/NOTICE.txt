@@ -1,6 +1,6 @@
 Franmotest Android app
 
-Includes Android project templates from Google Bubblewrap and the Android Browser Helper library, Copyright Google LLC, licensed under Apache License 2.0. AndroidX libraries are also licensed under Apache License 2.0.
+Includes retained Gradle/icon templates from Google Bubblewrap (Copyright Google LLC) and AndroidX WebKit/Activity/Core libraries, licensed under Apache License 2.0. No Android Browser Helper or browser runtime is bundled. Original Franmotest code is MIT; textbook data terms are described in DATA_NOTICE.md.
 
 
                                  Apache License

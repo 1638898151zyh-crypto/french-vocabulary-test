@@ -14,7 +14,8 @@
     "test:account": "node scripts/test-account-session.mjs",
     "test:production": "node scripts/test-multi-production.mjs",
     "test:profile": "node scripts/test-account-profile.mjs",
-    "test:pwa": "node scripts/test-pwa.mjs"
+    "test:pwa": "node scripts/test-pwa.mjs",
+    "test:android": "node scripts/test-native-app.mjs"
   },
   "dependencies": {
     "react": "^19.2.0",

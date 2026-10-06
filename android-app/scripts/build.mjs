@@ -3,13 +3,14 @@ import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import './generate.mjs';
 
 const project=fileURLToPath(new URL('../',import.meta.url)),root=resolve(project,'..');
 const config=JSON.parse(readFileSync(join(root,'.netlify/android-tools/config.json'),'utf8'));
-const manifest=JSON.parse(readFileSync(join(project,'twa-manifest.json'),'utf8'));
+const manifest=JSON.parse(readFileSync(join(project,'app-config.json'),'utf8'));
 const env={...process.env,JAVA_HOME:config.jdkPath,ANDROID_HOME:config.androidSdkPath,ANDROID_SDK_ROOT:config.androidSdkPath,GRADLE_USER_HOME:join(root,'.netlify/android-tools/gradle-cache')};
 if(process.platform!=='win32')throw Error('This local build runner is for Windows. Use Gradle and apksigner directly on other platforms.');
-execFileSync('cmd.exe',['/d','/s','/c','gradlew.bat assembleRelease lintRelease --no-daemon --console=plain'],{cwd:project,env,stdio:'inherit'});
+execFileSync('cmd.exe',['/d','/s','/c','gradlew.bat assembleRelease assembleDebug lintRelease --no-daemon --console=plain'],{cwd:project,env,stdio:'inherit'});
 const tools=join(config.androidSdkPath,'build-tools/36.1.0'),output=join(root,'.netlify/releases/android-1.0');mkdirSync(output,{recursive:true});
 const apk=join(output,'Franmotest-1.0-Android.apk');
 execFileSync(join(tools,'zipalign.exe'),['-P','16','-f','4',join(project,'app/build/outputs/apk/release/app-release-unsigned.apk'),apk],{env,stdio:'inherit'});
@@ -22,7 +23,7 @@ const fingerprint=manifest.fingerprints[0].value.replaceAll(':','').toLowerCase(
 if(!verification.toLowerCase().includes(fingerprint))throw Error('APK signing certificate differs from website association.');
 execFileSync(join(tools,'zipalign.exe'),['-c','-P','16','4',apk],{env,stdio:'inherit'});
 const info=execFileSync(join(tools,'aapt.exe'),['dump','badging',apk],{env,encoding:'utf8'});
-if(!info.includes("name='"+manifest.packageId+"'")||!info.includes("versionName='"+manifest.appVersion+"'"))throw Error('APK package or version differs from manifest.');
+if(!info.includes("name='"+manifest.packageId+"'")||!info.includes("versionName='"+manifest.appVersion+"'")||!info.includes("versionCode='"+manifest.appVersionCode+"'"))throw Error('APK package or version differs from manifest.');
 writeFileSync(join(output,'apk-verification.txt'),verification+'\n'+info);
 const hash=createHash('sha256').update(readFileSync(apk)).digest('hex');
 writeFileSync(join(output,'Franmotest-Android-SHA256SUMS.txt'),hash+'  Franmotest-1.0-Android.apk\n');

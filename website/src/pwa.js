@@ -1,4 +1,5 @@
 import {useEffect,useState} from 'react';
+import {isNativeApp} from './native-app.js';
 let state={supported:false,installed:false,ready:false,update:false,error:'',online:true};
 const listeners=new Set();let started=false,promptEvent=null,registration=null,reloading=false;
 const notify=patch=>{state={...state,...patch};for(const fn of listeners)fn(state);};
@@ -7,6 +8,7 @@ export function startPwa(){
  if(started||typeof window==='undefined')return;started=true;
  notify({supported:'serviceWorker' in navigator&&window.isSecureContext,installed:installed(),online:navigator.onLine!==false});
  window.addEventListener('online',()=>notify({online:true}));window.addEventListener('offline',()=>notify({online:false}));
+ if(isNativeApp){notify({supported:false,installed:true,ready:true});return;}
  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();promptEvent=event;notify({canInstall:true});});
  window.addEventListener('appinstalled',()=>{promptEvent=null;notify({installed:true,canInstall:false});});
  const display=window.matchMedia?.('(display-mode: standalone)');display?.addEventListener?.('change',()=>notify({installed:installed()}));

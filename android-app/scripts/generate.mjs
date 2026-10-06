@@ -1,26 +1,17 @@
-import {readFileSync,writeFileSync,readdirSync} from 'node:fs';
-import {join} from 'node:path';
+import {cpSync,existsSync,mkdirSync,readdirSync,rmSync,readFileSync} from 'node:fs';
+import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {TwaManifest,TwaGenerator,ConsoleLog,fetchUtils} from '@bubblewrap/core';
-
-const project=fileURLToPath(new URL('../',import.meta.url));
-const manifest=new TwaManifest(JSON.parse(readFileSync(new URL('../twa-manifest.json',import.meta.url),'utf8')));
-const error=manifest.validate();if(error)throw Error(error);
-// Use Node's environment-aware fetch and fail quickly on unavailable resources.
-fetchUtils.fetch=url=>fetch(url,{signal:AbortSignal.timeout(30000)});
-await new TwaGenerator().createTwaProject(project,manifest,new ConsoleLog('Franmotest'));
-// Bubblewrap's template still references the retired JCenter repository.
-const gradle=new URL('../build.gradle',import.meta.url);
-writeFileSync(gradle,readFileSync(gradle,'utf8').replaceAll('jcenter()','mavenCentral()'));
-function cleanTemplates(directory){
- for(const entry of readdirSync(directory,{withFileTypes:true})){
-  const path=join(directory,entry.name);
-  if(entry.isDirectory())cleanTemplates(path);
-  else if(/\.(java|xml|gradle)$/.test(entry.name))writeFileSync(path,readFileSync(path,'utf8').replace(/[\t ]+$/gm,'').trimEnd()+'\n');
- }
-}
-cleanTemplates(join(project,'app/src/main'));
-for(const file of ['build.gradle','app/build.gradle']){
- const path=join(project,file);writeFileSync(path,readFileSync(path,'utf8').replace(/[\t ]+$/gm,'').trimEnd()+'\n');
-}
-console.log('Franmotest Android project generated.');
+import {execFileSync} from 'node:child_process';
+const project=fileURLToPath(new URL('../',import.meta.url)),root=resolve(project,'..');
+const website=join(root,'website');
+execFileSync(process.execPath,[join(website,'node_modules/vite/bin/vite.js'),'build','--mode','android'],{cwd:website,stdio:'inherit'});
+const destination=resolve(project,'app/src/main/assets/public');
+if(destination!==join(project,'app/src/main/assets/public'))throw Error('Unexpected assets path.');
+// This exact generated directory is ignored by Git and never contains source or user data.
+if(existsSync(destination))rmSync(destination,{recursive:true});
+mkdirSync(destination,{recursive:true});
+cpSync(join(website,'dist-android'),destination,{recursive:true});
+if(existsSync(join(destination,'sw.js')))throw Error('Native assets must not contain a service worker.');
+const scripts=readdirSync(join(destination,'assets')).filter(name=>name.endsWith('.js')).map(name=>readFileSync(join(destination,'assets',name),'utf8')).join('');
+for(const marker of ['Édito B1','Inspire A1','Édito A2','FranmotestNative'])if(!scripts.includes(marker))throw Error('Native bundle missing '+marker);
+console.log('APK assets ready: learning UI, three textbook banks, native file bridge.');

@@ -1,0 +1,7 @@
+{
+  "packageId": "app.netlify.franmotest",
+  "appVersion": "1.0",
+  "appVersionCode": 2,
+  "signingKey": {"path": "../.netlify/android-signing/franmotest-release.jks", "alias": "franmotest"},
+  "fingerprints": [{"value": "47:02:8B:8D:14:0C:1B:06:F9:8D:9F:9C:73:94:93:94:87:E1:04:8E:18:2A:D9:C8:B6:6F:C4:DB:61:2C:1F:CF"}]
+}

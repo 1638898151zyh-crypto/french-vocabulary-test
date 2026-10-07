@@ -92,6 +92,7 @@ function App({production=false}) {
       let changed=false;
       if(action==='toggle')changed=core.toggle(next,id);
       if(action==='vote')changed=core.vote(next,id,kind);
+      if(action==='order')changed=core.setOrder(next,book.bank,id);
       if(action==='group'&&Number.isInteger(id)&&id>=0&&id<core.groups(book.bank,core.active(next)).length){core.active(next).group=id;changed=true;}
       if(action==='pass')changed=core.pass(next,book.bank,kind||'manual',{shuffle:settings.shuffle});
       if(action==='repeat')changed=core.repeat(next,book.bank,{shuffle:settings.shuffle});
@@ -119,7 +120,7 @@ function App({production=false}) {
   useEffect(()=>{if(page!=='daily'||!ready(book))return;const timer=setInterval(()=>{if(secondary[bookId]?.daily?.day!==day())generateDaily();},60000);return ()=>clearInterval(timer);},[page,bookId,allowedStamp,secondary[bookId]?.daily?.day]);
   useEffect(()=>{if(page!=='practice'||!ready(book))return;setSecondary(old=>old[bookId]?.practice?old:{...old,[bookId]:{...old[bookId],practice:createPractice(book)}});},[page,bookId]);
   useEffect(()=>{
-    if(page!=='study'||!state||attempt.passReason||!core.perfect(state))return;
+    if(page!=='study'||!state||attempt.passReason||attempt.group!==core.groups(book.bank,attempt).length-1||!core.perfect(state))return;
     const captured=attempt.id;setAutoPart(captured);
     const timer=setTimeout(()=>{act('pass',null,'automatic',captured);setAutoPart(null);setToast('本轮已自动过关；累计次数已保留，可从目录重测任意 Part。');},850);
     return ()=>{clearTimeout(timer);setAutoPart(null);};
@@ -182,11 +183,10 @@ function App({production=false}) {
         {page==='guide'&&<VocabularyGuide production={production} onImport={()=>setImporting({target:''})} notify={setToast}/>}
         {page==='settings'&&<><div className="dp-page-heading"><div><div className="dp-eyebrow">MES PRÉFÉRENCES</div><h1>设置与备份</h1><p>备份学习记录，调整界面外观、卡片布局与词汇顺序。</p></div></div><SettingsAndBackup production={production} learning={learning} onAccount={()=>openAccount()} onGuest={()=>{const guest=learning.guest();if(!guest){setToast('没有有效游客记录。');return;}setBackupPreview({...readBackup(guest,books,progress),filename:'本机游客记录'});}} book={book} settings={settings} onChange={changeSettings} theme={theme} onTheme={changeTheme} onFullBackup={()=>downloadJSON(production?learning.bundle:fullBackup(books,progress,settings,bookId,secondary,theme),production?'franmo-multibook-backup.json':'atelier-multibook-preview-backup.json')} onMainBackup={()=>downloadJSON(mainBackup(book,state),`${book.id}-${production?'':'preview-'}main-progress.json`)} onImport={()=>backupInput.current.click()} go={go}/></>}
         {page==='about'&&<><div className="dp-page-heading"><div><div className="dp-eyebrow">FRANMOTEST</div><h1>网站介绍与使用教程</h1></div></div><About go={go} production={production}/></>}
-        {!['home','books','guide','settings','about'].includes(page)&&<><div className="dp-context"><button onClick={()=>go('books')}><ArrowLeft size={14}/>我的课本</button><span>/</span><strong>{book.name}</strong><span className="context-level">{book.level}</span><span className="context-status">{bookStatus(book)}</span></div><div className="dp-page-heading inner"><div><div className="dp-eyebrow">{page==='study'?'APPRENDRE':page==='daily'?'RÉVISER':page==='records'?'MES PROGRÈS':'LE VOCABULAIRE'}</div><h1>{pageTitles[page]}</h1><p>{page==='study'?'按主题检测，点击整行翻词；页面底部可任选 Part。':page==='daily'?'只复习当前课本已过关的内容，不混入其他课本词汇。':page==='practice'?'第一单元 P1＋P2 混合练习，五组各十词；累计独立，不改变课本过关。':'浏览完整词库，按 Part 查看每个词的累计正确与错误次数。'}</p></div><button className="dp-button" onClick={()=>go('books')}><Library size={15}/>切换课本</button></div>
+        {!['home','books','guide','settings','about'].includes(page)&&<><div className="dp-context"><button onClick={()=>go('books')}><ArrowLeft size={14}/>我的课本</button><span>/</span><strong>{book.name}</strong><span className="context-level">{book.level}</span><span className="context-status">{bookStatus(book)}</span></div><div className="dp-page-heading inner"><div><div className="dp-eyebrow">{page==='study'?'APPRENDRE':page==='daily'?'RÉVISER':page==='records'?'MES PROGRÈS':'LE VOCABULAIRE'}</div><h1>{pageTitles[page]}</h1><p>{page==='study'?'按主题检测，点击整行翻词；页面底部可任选 Part。':page==='daily'?'只复习当前课本已过关的内容，不混入其他课本词汇。':page==='practice'?'第一单元 P1＋P2 混合练习，五组各十词；累计独立，不改变课本过关。':'浏览完整词库，按 Part 查看每个词的累计正确与错误次数。'}</p></div>{page!=='study'&&<button className="dp-button" onClick={()=>go('books')}><Library size={15}/>切换课本</button>}</div>
         {!ready(book)?<section className="dp-unavailable"><Cover book={book}/><div><span className="dp-status pending">词库待添加</span><h2>课本已选好，下一步添加词库。</h2><p>{book.name} 目前只有课本信息。导入对应的词条与章节后，就能开始检测并保存这本课本自己的进度。</p><button className="dp-button primary" onClick={()=>setImporting({target:book.id})}><Upload size={16}/>一键导入词库</button><button className="dp-text-button" onClick={()=>choose('edito-b1')}>先体验 Édito B1<ArrowRight size={14}/></button></div></section>:
           page==='study'?<div className="study-page">
             {book.notice&&<div className="vi-message"><Info size={17}/><span>{book.notice}</span></div>}
-            <div className="study-setting-link"><button className="dp-text-button" onClick={()=>go('settings')}><Settings2 size={16}/>布局与乱序设置</button></div>
             <Quiz book={book} state={state} attempt={attempt} act={act} auto={autoPart===attempt.id} settings={settings} onSettings={changeSettings} titleFor={titleFor} themeFor={themeFor}/>
             <PartDirectory book={book} state={state} act={act} titleFor={titleFor}/>
           </div>:

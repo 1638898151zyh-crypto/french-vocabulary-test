@@ -1,6 +1,6 @@
-# Franmotest 1.0 安卓版安装说明
+# Franmotest 1.1 安卓版安装说明
 
-[下载安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.0/Franmotest-1.0-Android.apk)
+[下载安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1/Franmotest-1.1-Android.apk)
 
 在安卓手机打开下载的 APK，按系统提示允许当前下载工具或文件管理器安装应用。安装完成后直接点击 **Franmotest** 图标。
 
@@ -16,10 +16,10 @@
 
 - **已有账号**：在新版登录原账号，读取云端记录继续学习。更新前请先确保原版已同步。
 - **游客记录**：先在原网站或旧版 App 的“设置与备份”导出完整备份，再在新版导入。旧版使用的浏览器存储与新版 App 存储分别保存，不会自动搬迁。
-- **已安装旧版 APK**：新版保持同一包名和发布签名，版本名为 1.0、内部版本号为 2，可覆盖安装。不要为了更新先卸载；卸载或清除 App 数据会移除尚未同步的本机记录。
+- **已安装旧版 APK**：新版保持同一包名和发布签名，版本名为 1.1、内部版本号为 3，可覆盖安装。不要为了更新先卸载；卸载或清除 App 数据会移除尚未同步的本机记录。
 
 ## 更新和下载
 
-[GitHub Release](https://github.com/Alain-0721/french-vocabulary-test/releases/tag/v1.0) 提供 APK、安装说明与 SHA-256 校验文件。学习界面与内置词库随 APK 更新，网页版更新不会自动替换 APK 内置界面。以后下载安装新版 APK 覆盖即可。
+[GitHub Release](https://github.com/Alain-0721/french-vocabulary-test/releases/tag/v1.1) 提供 APK、安装说明与 SHA-256 校验文件。学习界面与内置词库随 APK 更新，网页版更新不会自动替换 APK 内置界面。以后下载安装新版 APK 覆盖即可。
 
 App 使用安卓系统内置 WebView 显示随安装包附带的页面，无浏览器地址栏，也不使用浏览器打开学习页面。教程中的“下载文件”、项目 GitHub 等外部链接仅在主动点击时打开对应应用。

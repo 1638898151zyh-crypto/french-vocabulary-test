@@ -5,12 +5,13 @@ import {JSDOM} from 'jsdom';
 import {readFileSync,existsSync} from 'node:fs';
 import {readBackup} from '../src/preview-backup.js';
 import {freshMulti} from '../src/multi-learning.js';
+import * as Study from '../src/preview-study.js';
 const auth='export const getUser=async()=>null,refreshSession=async()=>{},getSettings=async()=>({disableSignup:false}),handleAuthCallback=async()=>null,onAuthChange=()=>()=>{},login=async()=>{},signup=async()=>({}),logout=async()=>{},requestPasswordRecovery=async()=>{},updateUser=async()=>{},acceptInvite=async()=>{};';
 const ui=await build({entryPoints:['src/site.jsx'],bundle:true,write:false,format:'iife',platform:'browser',define:{'import.meta.env.PROD':'true','import.meta.env.VITE_NATIVE_APP':'"true"'},loader:{'.css':'empty'},logLevel:'silent',plugins:[{name:'identity-fixture',setup(b){b.onResolve({filter:/^@netlify\/identity$/},()=>({path:'identity',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:auth,loader:'js'}));}}]});
 const pause=()=>new Promise(r=>setTimeout(r,100));
 function app(saved){
  const dom=new JSDOM('<div id="root"></div>',{url:'https://franmotest.netlify.app/#/home',runScripts:'dangerously',pretendToBeVisual:true}),w=dom.window;
- w.structuredClone=structuredClone;w.scrollTo=()=>{};w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
+ w.structuredClone=structuredClone;w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
  Object.defineProperty(w.navigator,'onLine',{value:false});
  w.workerCalls=0;Object.defineProperty(w.navigator,'serviceWorker',{value:{register(){w.workerCalls++;throw Error('Native app must not use a worker');}}});
  w.saves=[];w.externals=[];w.FranmotestNative={saveText:(...args)=>w.saves.push(args),setDark(){},openExternal:url=>w.externals.push(url)};
@@ -37,3 +38,14 @@ test('native distribution includes only local scripts and styles and excludes th
  assert.ok(existsSync('dist-android/index.html'),'Build android mode first');assert.ok(!existsSync('dist-android/sw.js'));
  const html=readFileSync('dist-android/index.html','utf8');for(const match of html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g))assert.ok(existsSync('dist-android'+match[1]));assert.ok(!/https?:\/\//.test(html));
 });
+test('compact study updates scores when votes change, preserves votes on sorting and advances groups before Part mastery',async()=>{
+ const {dom,w}=app();try{await pause();w.location.hash='/study';await pause();const d=w.document;
+ assert.ok(!d.body.textContent.includes('布局与乱序设置'));assert.ok(!d.querySelector('.study-tools').textContent.includes('卡片布局'));
+ const firstId=d.querySelector('.study-word-row').dataset.wordId;d.querySelector('.dp-word-trigger').click();await pause();d.querySelector('.dp-votes .good').click();await pause();assert.match(d.querySelector('.study-live-score').textContent,/✔ 1.*✘ 0.*100%/);
+ d.querySelector('.dp-votes .bad').click();await pause();assert.match(d.querySelector('.study-live-score').textContent,/✔ 0.*✘ 1.*0%/);
+ const order=d.querySelector('[aria-label="切换词汇顺序"]');order.value='random';order.dispatchEvent(new w.Event('change',{bubbles:true}));await pause();let bundle=JSON.parse(w.localStorage.getItem('franmo-atelier:v2:guest')).bundle;const s=bundle.progress['edito-b1'];assert.equal(Study.active(s).shuffled,true);assert.equal(Study.active(s).votes[firstId],'bad');assert.equal(s.stats[firstId].bad,1);
+ d.querySelector('.dp-quiz-actions .primary').click();await pause();bundle=JSON.parse(w.localStorage.getItem('franmo-atelier:v2:guest')).bundle;assert.equal(Study.active(bundle.progress['edito-b1']).group,1);assert.equal(bundle.progress['edito-b1'].current,0);
+ const tabs=d.querySelectorAll('.dp-group-tabs button');tabs[tabs.length-1].click();await pause();assert.match(d.querySelector('.dp-quiz-actions .primary').textContent,/本部分过关/);
+ }finally{dom.window.close();}
+});
+test('home download shortcut targets the chooser and explains both app versions',async()=>{const {dom,w}=app();try{await pause();const d=w.document;d.querySelector('.app-download-shortcut').click();assert.equal(d.activeElement.id,'home-app-download');const tabs=d.querySelectorAll('.app-download-tabs button');assert.equal(tabs.length,2);assert.equal(tabs[1].getAttribute('aria-selected'),'true');assert.ok(d.querySelector('.app-download-panel a').href.endsWith('/v1.1/Franmotest-1.1-Android.apk'));tabs[0].click();await pause();assert.match(d.querySelector('.app-download-panel').textContent,/由浏览器安装到桌面/);assert.match(d.querySelector('.app-download-panel').textContent,/首次联网准备词库/);}finally{dom.window.close();}});

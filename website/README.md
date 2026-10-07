@@ -1,4 +1,4 @@
-# Franmotest 1.0 · 法语词汇学习网站
+# Franmotest 1.1 · 法语词汇学习网站
 
 **Franmotest** 由 **Français（法语）、mots（单词）、test（检测）** 组合而来。
 
@@ -118,3 +118,7 @@ npx netlify deploy --prod --no-build --dir dist --functions netlify/functions --
 使用 `--no-build` 时显式传入函数目录，避免只上传静态页面。依赖、构建产物、`.netlify/`、密钥与个人备份不提交到 GitHub。
 
 原创代码遵循仓库 [MIT 许可](../LICENSE)；教材衍生词库不包含在 MIT 代码授权中，详见 [词库来源及许可范围](../DATA_NOTICE.md)。
+
+## 1.1 更新
+
+检测页移除独立设置行，直接切换词汇顺序和卡片布局；切换顺序保留当前判定。实时显示本轮正确、错误及正确率，非末组按钮为“下一组”，最后一组为“本部分过关”。手机顶部自适应高度，避免课本与头像溢出。首页顶部快捷卡片滚动到 App 下载选择区，提供 PWA 和 APK 及区别说明。

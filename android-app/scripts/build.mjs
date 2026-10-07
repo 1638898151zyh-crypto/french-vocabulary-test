@@ -11,8 +11,8 @@ const manifest=JSON.parse(readFileSync(join(project,'app-config.json'),'utf8'));
 const env={...process.env,JAVA_HOME:config.jdkPath,ANDROID_HOME:config.androidSdkPath,ANDROID_SDK_ROOT:config.androidSdkPath,GRADLE_USER_HOME:join(root,'.netlify/android-tools/gradle-cache')};
 if(process.platform!=='win32')throw Error('This local build runner is for Windows. Use Gradle and apksigner directly on other platforms.');
 execFileSync('cmd.exe',['/d','/s','/c','gradlew.bat assembleRelease assembleDebug lintRelease --no-daemon --console=plain'],{cwd:project,env,stdio:'inherit'});
-const tools=join(config.androidSdkPath,'build-tools/36.1.0'),output=join(root,'.netlify/releases/android-1.0');mkdirSync(output,{recursive:true});
-const apk=join(output,'Franmotest-1.0-Android.apk');
+const tools=join(config.androidSdkPath,'build-tools/36.1.0'),output=join(root,'.netlify/releases/android-'+manifest.appVersion);mkdirSync(output,{recursive:true});
+const apkName='Franmotest-'+manifest.appVersion+'-Android.apk',apk=join(output,apkName);
 execFileSync(join(tools,'zipalign.exe'),['-P','16','-f','4',join(project,'app/build/outputs/apk/release/app-release-unsigned.apk'),apk],{env,stdio:'inherit'});
 const java=join(config.jdkPath,'bin/java.exe'),signer=join(tools,'lib/apksigner.jar');
 const {password}=JSON.parse(readFileSync(join(root,'.netlify/android-signing/password.json'),'utf8'));
@@ -26,6 +26,6 @@ const info=execFileSync(join(tools,'aapt.exe'),['dump','badging',apk],{env,encod
 if(!info.includes("name='"+manifest.packageId+"'")||!info.includes("versionName='"+manifest.appVersion+"'")||!info.includes("versionCode='"+manifest.appVersionCode+"'"))throw Error('APK package or version differs from manifest.');
 writeFileSync(join(output,'apk-verification.txt'),verification+'\n'+info);
 const hash=createHash('sha256').update(readFileSync(apk)).digest('hex');
-writeFileSync(join(output,'Franmotest-Android-SHA256SUMS.txt'),hash+'  Franmotest-1.0-Android.apk\n');
+writeFileSync(join(output,'Franmotest-Android-SHA256SUMS.txt'),hash+'  '+apkName+'\n');
 copyFileSync(join(project,'INSTALL.md'),join(output,'Franmotest-Android-Installation.md'));
 console.log(JSON.stringify({apk,package:manifest.packageId,version:manifest.appVersion,sha256:hash,signatureVerified:true}));

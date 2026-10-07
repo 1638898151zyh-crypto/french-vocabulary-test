@@ -32,6 +32,12 @@ export function groups(bank,attempt){
   return [...grouped.values()];
 }
 export function toggle(s,id){const a=active(s);if(!a.ids.includes(id))return false;a.opened[id]=!a.opened[id];return true;}
+export function setOrder(s,bank,random,options={}){
+  const a=active(s);if(a.shuffled===random)return false;
+  const allowed=new Set(a.ids);
+  a.ids=sourceGroups(bank,a.part).flatMap(ids=>random?shuffle(ids,options.rng||Math.random):ids).filter(id=>allowed.has(id));
+  a.shuffled=random;return true;
+}
 export function perfect(s){const a=active(s);return a.ids.length>0&&a.ids.every(id=>a.votes[id]==='good');}
 export function vote(s,id,kind){
   const a=active(s);

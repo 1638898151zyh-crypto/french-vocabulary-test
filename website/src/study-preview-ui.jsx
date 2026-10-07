@@ -22,17 +22,17 @@ export function WordRow({entry,index,attempt,stats,act}){
 export function Quiz({book,state,attempt,act,auto,settings,onSettings,titleFor,themeFor}){
   const grouped=Study.groups(book.bank,attempt),group=grouped[attempt.group]||grouped[0],title=titleFor(book,attempt.part);
   const dictionary=new Map(book.bank.map(e=>[e.id,e]));
-  const done=Object.keys(attempt.votes).length,passed=!!state.mastered[attempt.part];
+  const done=Object.keys(attempt.votes).length,passed=!!state.mastered[attempt.part],good=Object.values(attempt.votes).filter(v=>v==='good').length,bad=done-good,last=attempt.group===grouped.length-1;
   const first=dictionary.get(group.ids[0]);
   return <section className={`dp-quiz study-quiz layout-${settings.layout}`}>
     <header className="quiz-heading"><div><div className="quiz-meta"><span>{book.name}</span><i/>{shortPart(attempt.part)}<span>第 {attempt.round} 轮</span>{passed&&<span className="dp-status available">已过关 · 可重测</span>}</div><h2 lang="fr">{title?.fr}</h2><p>{title?.zh}</p></div><span className="quiz-word-count">{grouped.length} 组 · {attempt.ids.length} 词</span></header>
-    <div className="study-tools"><span>{attempt.shuffled?<><Shuffle size={14}/>本轮主题内乱序</>:'本轮按教材顺序'}</span><label>卡片布局<select aria-label="切换卡片布局" value={settings.layout} onChange={e=>onSettings({layout:e.target.value})}><option value="classic">对错在左 · 翻译在右</option><option value="right">翻译在左 · 对错在右</option></select></label></div>
-    <div className="quiz-completion"><span>本部分已判 <b>{done}</b> / {attempt.ids.length} 词</span><span>点击整行翻词，再选择 ✔ / ✘</span><div className="dp-track"><span style={{width:done/attempt.ids.length*100+'%'}}/></div></div>
+    <div className="study-tools"><select aria-label="切换词汇顺序" value={attempt.shuffled?'random':'textbook'} onChange={e=>{const shuffle=e.target.value==='random';onSettings({shuffle});act('order',shuffle,null,attempt.id);}}><option value="textbook">按教材顺序</option><option value="random">按混乱排序</option></select><select aria-label="切换卡片布局" value={settings.layout} onChange={e=>onSettings({layout:e.target.value})}><option value="classic">对错在左 · 翻译在右</option><option value="right">翻译在左 · 对错在右</option></select></div>
+    <div className="quiz-completion"><span>本部分已判 <b>{done}</b> / {attempt.ids.length} 词</span><span className="study-live-score" role="status" aria-live="polite" aria-label="本轮对错与正确率"><span className="score-good">✔ {good}</span><span className="score-bad">✘ {bad}</span><span>正确率 <b>{done?Math.round(good/done*100)+'%':'—'}</b></span></span><div className="dp-track"><span style={{width:done/attempt.ids.length*100+'%'}}/></div></div>
     <div className="dp-group-tabs" role="tablist" aria-label="主题分组">{grouped.map((g,i)=><button role="tab" aria-selected={attempt.group===i} key={g.label} className={attempt.group===i?'active':''} onClick={()=>act('group',i,null,attempt.id)}>第 {i+1} 组</button>)}</div>
     <div className="dp-theme"><span>{String(attempt.group+1).padStart(2,'0')}</span><div><h3 lang="fr">{group.label}</h3><p>{themeFor(book,first)}</p></div><small>{group.ids.length} 词</small></div>
     <div className="dp-word-list">{group.ids.map((id,i)=><WordRow key={id} entry={dictionary.get(id)} index={i} attempt={attempt} stats={state.stats[id]} act={act}/>)}</div>
     <div className="dp-quiz-footer"><span>{book.name} · 本组完整主题词汇</span><span>{attempt.group+1} / {grouped.length} 组</span></div>
-    <div className="dp-quiz-actions"><button className="dp-button" onClick={()=>act('repeat',null,null,attempt.id)}><RotateCcw size={15}/>再测本部分</button><button className="dp-button primary" disabled={!!attempt.passReason} onClick={()=>act('pass',null,null,attempt.id)}><CheckCircle2 size={16}/>{auto?'正在完成本轮…':attempt.passReason?'本轮已完成':passed?'结束本轮检测':'本部分过关'}</button></div>
+    <div className="dp-quiz-actions"><button className="dp-button" onClick={()=>act('repeat',null,null,attempt.id)}><RotateCcw size={15}/>再测本部分</button><button className="dp-button primary" disabled={last&&!!attempt.passReason} onClick={()=>{if(last)act('pass',null,null,attempt.id);else{act('group',attempt.group+1,null,attempt.id);document.querySelector('.dp-group-tabs')?.scrollIntoView({block:'start',behavior:'smooth'});}}}>{last?<CheckCircle2 size={16}/>:<ArrowRight size={16}/>} {last?(auto?'正在完成本轮…':attempt.passReason?'本轮已完成':'本部分过关'):'下一组'}</button></div>
   </section>;
 }
 

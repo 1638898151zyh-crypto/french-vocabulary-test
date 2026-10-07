@@ -28,4 +28,5 @@ writeFileSync(join(output,'apk-verification.txt'),verification+'\n'+info);
 const hash=createHash('sha256').update(readFileSync(apk)).digest('hex');
 writeFileSync(join(output,'Franmotest-Android-SHA256SUMS.txt'),hash+'  '+apkName+'\n');
 copyFileSync(join(project,'INSTALL.md'),join(output,'Franmotest-Android-Installation.md'));
+await import('./update-manifest.mjs');
 console.log(JSON.stringify({apk,package:manifest.packageId,version:manifest.appVersion,sha256:hash,signatureVerified:true}));

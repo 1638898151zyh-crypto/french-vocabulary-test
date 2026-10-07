@@ -12,6 +12,11 @@
   to = "/index.html"
   status = 200
 [[headers]]
+  for = "/android-update.json"
+  [headers.values]
+    Cache-Control = "no-store, max-age=0"
+    Content-Type = "application/json; charset=utf-8"
+[[headers]]
   for = "/sw.js"
   [headers.values]
     Cache-Control = "no-cache"

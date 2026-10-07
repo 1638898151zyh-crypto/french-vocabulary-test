@@ -6,8 +6,8 @@ android {
         applicationId 'app.netlify.franmotest'
         minSdk 23
         targetSdk 36
-        versionCode 3
-        versionName '1.1'
+        versionCode = (project.findProperty('qaVersionCode') ?: '4').toString().toInteger()
+        versionName = (project.findProperty('qaVersionName') ?: '1.1.1').toString()
     }
     buildFeatures { buildConfig true }
     compileOptions {

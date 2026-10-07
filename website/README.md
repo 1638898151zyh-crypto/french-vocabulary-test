@@ -1,4 +1,4 @@
-# Franmotest 1.1 · 法语词汇学习网站
+# Franmotest 1.1.1 · 法语词汇学习网站
 
 **Franmotest** 由 **Français（法语）、mots（单词）、test（检测）** 组合而来。
 
@@ -122,3 +122,9 @@ npx netlify deploy --prod --no-build --dir dist --functions netlify/functions --
 ## 1.1 更新
 
 检测页移除独立设置行，直接切换词汇顺序和卡片布局；切换顺序保留当前判定。实时显示本轮正确、错误及正确率，非末组按钮为“下一组”，最后一组为“本部分过关”。手机顶部自适应高度，避免课本与头像溢出。首页顶部快捷卡片滚动到 App 下载选择区，提供 PWA 和 APK 及区别说明。
+
+## 安卓更新发布
+
+1.1.1 起，安卓版设置可检查更新，首页联网自动检查并提示。App 下载经过 SHA-256、包名、递增版本与同一签名校验，再用系统安装窗口确认。检查状态独立于学习存储，失败或取消不修改学习记录。
+
+`android-app/scripts/build.mjs` 构建并签名后生成 `public/android-update.json`。该文件随网站发布，以内部版本号比较新版，必须在对应 GitHub Release APK 上传且验证成功后再部署网站。安装包不内置该元数据，避免校验值形成循环；原生网络检查不会使用 PWA 缓存。

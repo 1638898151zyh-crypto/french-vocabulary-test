@@ -18,7 +18,7 @@ self.addEventListener('message',event=>{if(event.data?.type==='ACTIVATE_UPDATE')
 self.addEventListener('fetch',event=>{
  const request=event.request,url=new URL(request.url);
  // Account, progress and avatar requests always go to the network.
- if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/')||url.pathname.startsWith('/.netlify/')||url.pathname==='/textbooks-preview.html')return;
+ if(request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api/')||url.pathname.startsWith('/.netlify/')||url.pathname==='/textbooks-preview.html'||url.pathname==='/android-update.json')return;
  if(request.mode==='navigate'){
   // Serve one complete build: new assets activate only with their own HTML.
   event.respondWith((async()=>{

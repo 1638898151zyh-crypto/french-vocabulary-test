@@ -9,12 +9,12 @@ import * as Study from '../src/preview-study.js';
 const auth='export const getUser=async()=>null,refreshSession=async()=>{},getSettings=async()=>({disableSignup:false}),handleAuthCallback=async()=>null,onAuthChange=()=>()=>{},login=async()=>{},signup=async()=>({}),logout=async()=>{},requestPasswordRecovery=async()=>{},updateUser=async()=>{},acceptInvite=async()=>{};';
 const ui=await build({entryPoints:['src/site.jsx'],bundle:true,write:false,format:'iife',platform:'browser',define:{'import.meta.env.PROD':'true','import.meta.env.VITE_NATIVE_APP':'"true"'},loader:{'.css':'empty'},logLevel:'silent',plugins:[{name:'identity-fixture',setup(b){b.onResolve({filter:/^@netlify\/identity$/},()=>({path:'identity',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:auth,loader:'js'}));}}]});
 const pause=()=>new Promise(r=>setTimeout(r,100));
-function app(saved){
+function app(saved,{online=false}={}){
  const dom=new JSDOM('<div id="root"></div>',{url:'https://franmotest.netlify.app/#/home',runScripts:'dangerously',pretendToBeVisual:true}),w=dom.window;
  w.structuredClone=structuredClone;w.scrollTo=()=>{};w.HTMLElement.prototype.scrollIntoView=()=>{};w.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
- Object.defineProperty(w.navigator,'onLine',{value:false});
+ Object.defineProperty(w.navigator,'onLine',{value:online,configurable:true});
  w.workerCalls=0;Object.defineProperty(w.navigator,'serviceWorker',{value:{register(){w.workerCalls++;throw Error('Native app must not use a worker');}}});
- w.saves=[];w.externals=[];w.FranmotestNative={saveText:(...args)=>w.saves.push(args),setDark(){},openExternal:url=>w.externals.push(url)};
+ w.saves=[];w.externals=[];w.updateChecks=[];w.updateInstalls=0;w.FranmotestNative={saveText:(...args)=>w.saves.push(args),setDark(){},openExternal:url=>w.externals.push(url),getAppUpdateState:()=>JSON.stringify({phase:'idle',available:false,currentVersion:'1.1.1',currentCode:4,progress:0,message:'联网后可以检查更新'}),checkForUpdate:manual=>w.updateChecks.push(manual),installUpdate:()=>w.updateInstalls++};
  w.fetch=async()=>{throw Error('offline');};
  if(saved)w.localStorage.setItem('franmo-atelier:v2:guest',saved);
  w.eval(ui.outputFiles[0].text);return {dom,w};
@@ -48,4 +48,13 @@ test('compact study updates scores when votes change, preserves votes on sorting
  const tabs=d.querySelectorAll('.dp-group-tabs button');tabs[tabs.length-1].click();await pause();assert.match(d.querySelector('.dp-quiz-actions .primary').textContent,/本部分过关/);
  }finally{dom.window.close();}
 });
-test('home download shortcut targets the chooser and explains both app versions',async()=>{const {dom,w}=app();try{await pause();const d=w.document;d.querySelector('.app-download-shortcut').click();assert.equal(d.activeElement.id,'home-app-download');const tabs=d.querySelectorAll('.app-download-tabs button');assert.equal(tabs.length,2);assert.equal(tabs[1].getAttribute('aria-selected'),'true');assert.ok(d.querySelector('.app-download-panel a').href.endsWith('/v1.1/Franmotest-1.1-Android.apk'));tabs[0].click();await pause();assert.match(d.querySelector('.app-download-panel').textContent,/由浏览器安装到桌面/);assert.match(d.querySelector('.app-download-panel').textContent,/首次联网准备词库/);}finally{dom.window.close();}});
+test('home download shortcut targets the chooser and explains both app versions',async()=>{const {dom,w}=app();try{await pause();const d=w.document;d.querySelector('.app-download-shortcut').click();assert.equal(d.activeElement.id,'home-app-download');const tabs=d.querySelectorAll('.app-download-tabs button');assert.equal(tabs.length,2);assert.equal(tabs[1].getAttribute('aria-selected'),'true');assert.match(d.querySelector('.app-download-panel button').textContent,/检查 App 更新/);tabs[0].click();await pause();assert.match(d.querySelector('.app-download-panel').textContent,/由浏览器安装到桌面/);assert.match(d.querySelector('.app-download-panel').textContent,/首次联网准备词库/);}finally{dom.window.close();}});
+test('native update checks on launch, presents homepage update and settings controls, shows progress without changing records',async()=>{
+ const {dom,w}=app(null,{online:true});try{await pause();const d=w.document;assert.deepEqual(w.updateChecks,[false]);assert.equal(d.querySelector('.native-update-banner'),null);const before=JSON.parse(w.localStorage.getItem('franmo-atelier:v2:guest')).bundle.progress;
+ const update={phase:'available',available:true,currentVersion:'1.1.1',currentCode:4,latestVersion:'1.1.2',progress:0,message:'发现新版本，可下载更新',notes:'更新说明'};
+ w.dispatchEvent(new w.CustomEvent('franmotest:app-update',{detail:update}));await pause();assert.match(d.querySelector('.native-update-banner').textContent,/1.1.2.*下载并更新/);d.querySelector('.native-update-banner button').click();assert.equal(w.updateInstalls,1);assert.equal(w.externals.length,0);
+ w.location.hash='/settings';await pause();const panel=d.querySelector('.native-update-settings');assert.match(panel.textContent,/当前版本 1.1.1/);panel.querySelector('button').click();assert.deepEqual(w.updateChecks,[false,true]);
+ w.dispatchEvent(new w.CustomEvent('franmotest:app-update',{detail:{...update,phase:'downloading',progress:50,message:'正在下载更新 50%'}}));await pause();assert.equal(d.querySelector('.native-update-settings progress').value,50);assert.ok([...d.querySelectorAll('.native-update-settings button')].every(b=>b.disabled));
+ w.dispatchEvent(new w.CustomEvent('franmotest:app-update',{detail:{...update,phase:'error',message:'更新未完成，请稍后重试'}}));await pause();assert.match(d.querySelector('.native-update-settings').textContent,/更新未完成/);assert.ok(!d.querySelector('.native-update-settings button').disabled);assert.deepEqual(JSON.parse(w.localStorage.getItem('franmo-atelier:v2:guest')).bundle.progress,before);
+ }finally{dom.window.close();}
+});

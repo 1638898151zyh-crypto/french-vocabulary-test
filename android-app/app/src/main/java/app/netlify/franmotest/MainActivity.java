@@ -41,6 +41,11 @@ public final class MainActivity extends ComponentActivity {
     static final String HOME = "https://" + HOST + "/#/home";
     private WebView web;
     private FrameLayout root;
+    private AppUpdater updater;
+    private final ActivityResultLauncher<Intent> updatePermission = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(), result -> { if (updater != null) updater.permissionReturned(); });
+    private final ActivityResultLauncher<Intent> updateInstaller = registerForActivityResult(
+        new ActivityResultContracts.StartActivityForResult(), result -> { if (updater != null) updater.installerReturned(); });
     private ValueCallback<Uri[]> fileCallback;
     private byte[] pendingExport;
     private long lastBack;
@@ -83,6 +88,7 @@ public final class MainActivity extends ComponentActivity {
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             return insets;
         });
+        updater = new AppUpdater(this);
         createWebView();
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
@@ -135,6 +141,7 @@ public final class MainActivity extends ComponentActivity {
                 }
             }).build();
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) { updater.publish(); }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (!"https".equals(request.getUrl().getScheme()) || !HOST.equals(request.getUrl().getHost()))
                     return missingAsset();
@@ -220,6 +227,9 @@ public final class MainActivity extends ComponentActivity {
         try { startActivity(intent); } catch (ActivityNotFoundException exception) { toast("没有可打开此链接的应用"); }
     }
     public final class NativeBridge {
+        @JavascriptInterface public String getAppUpdateState() { return updater.state(); }
+        @JavascriptInterface public void checkForUpdate(boolean manual) { updater.check(manual); }
+        @JavascriptInterface public void installUpdate() { updater.install(); }
         @JavascriptInterface public void saveText(String filename, String text, String mime) {
             if (text == null || text.length() > 16 * 1024 * 1024) { runOnUiThread(() -> toast("导出文件过大，请按课本分别导出")); return; }
             runOnUiThread(() -> {
@@ -246,8 +256,15 @@ public final class MainActivity extends ComponentActivity {
         }
     }
     private void toast(String text) { Toast.makeText(this, text, Toast.LENGTH_SHORT).show(); }
+    void publishUpdate(String json) {
+        runOnUiThread(() -> { if (web != null && !isDestroyed()) web.evaluateJavascript(
+            "window.dispatchEvent(new CustomEvent('franmotest:app-update',{detail:" + json + "}))", null); });
+    }
+    void launchUpdatePermission(Intent intent) { updatePermission.launch(intent); }
+    void launchUpdateInstaller(Intent intent) { updateInstaller.launch(intent); }
     @Override protected void onPause() { CookieManager.getInstance().flush(); super.onPause(); }
     @Override protected void onDestroy() {
+        if (updater != null) updater.close();
         if (fileCallback != null) fileCallback.onReceiveValue(null);
         if (web != null) { web.removeJavascriptInterface("FranmotestNative"); web.destroy(); }
         writer.shutdown();

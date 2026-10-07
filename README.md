@@ -8,7 +8,9 @@
 
 [网站介绍与使用教程](https://franmotest.pages.dev/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
 
-**[下载 Franmotest 1.1.4 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.4/Franmotest-1.1.4-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。设置可检查更新，首页提示新版。
+**[下载 Franmotest 1.1.5 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.5/Franmotest-1.1.5-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。设置可检查更新，首页提示新版。
+
+**1.1.5 更新**：手机选择框改为紧凑的站内底部菜单，章节和主题可搜索、长标题可换行；词库统计选中 Part 或主题后，底部提供上一个 / 下一个切换，首尾自动禁用。
 
 **1.1.4 更新**：找回密码支持邮箱 6 位验证码验证后设置新密码，验证码 10 分钟有效，支持重发；新密码可以与旧密码相同。网站与安卓版均可使用，原账号和学习记录保留。
 

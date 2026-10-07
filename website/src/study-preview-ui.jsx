@@ -1,5 +1,6 @@
 import React,{useState} from 'react';
 import {BookOpen,CheckCircle2,Check,X,ChevronDown,RotateCcw,Settings2,Shuffle,ArrowRight,Library,Upload,Info} from 'lucide-react';
+import {ChoiceMenu} from './choice-menu.jsx';
 import * as Study from './preview-study.js';
 
 const shortPart=p=>p.replace(/^U(\d+)P(\d+)$/,'U$1 · P$2');
@@ -26,7 +27,7 @@ export function Quiz({book,state,attempt,act,auto,settings,onSettings,titleFor,t
   const first=dictionary.get(group.ids[0]);
   return <section className={`dp-quiz study-quiz layout-${settings.layout}`}>
     <header className="quiz-heading"><div><div className="quiz-meta"><span>{book.name}</span><i/>{shortPart(attempt.part)}<span>第 {attempt.round} 轮</span>{passed&&<span className="dp-status available">已过关 · 可重测</span>}</div><h2 lang="fr">{title?.fr}</h2><p>{title?.zh}</p></div><span className="quiz-word-count">{grouped.length} 组 · {attempt.ids.length} 词</span></header>
-    <div className="study-tools"><select aria-label="切换词汇顺序" value={attempt.shuffled?'random':'textbook'} onChange={e=>{const shuffle=e.target.value==='random';onSettings({shuffle});act('order',shuffle,null,attempt.id);}}><option value="textbook">按教材顺序</option><option value="random">按混乱排序</option></select><select aria-label="切换卡片布局" value={settings.layout} onChange={e=>onSettings({layout:e.target.value})}><option value="classic">对错在左 · 翻译在右</option><option value="right">翻译在左 · 对错在右</option></select></div>
+    <div className="study-tools"><ChoiceMenu label="切换词汇顺序" value={attempt.shuffled?'random':'textbook'} options={[{value:'textbook',label:'按教材顺序',description:'保留课本中的词汇顺序'},{value:'random',label:'按混乱排序',description:'只打乱当前主题内的词汇，保留已判记录'}]} onChange={value=>{const shuffle=value==='random';onSettings({shuffle});act('order',shuffle,null,attempt.id);}}/><ChoiceMenu label="切换卡片布局" value={settings.layout} options={[{value:'classic',label:'对错在左 · 翻译在右'},{value:'right',label:'翻译在左 · 对错在右'}]} onChange={layout=>onSettings({layout})}/></div>
     <div className="quiz-completion"><span>本部分已判 <b>{done}</b> / {attempt.ids.length} 词</span><span className="study-live-score" role="status" aria-live="polite" aria-label="本轮对错与正确率"><span className="score-good">✔ {good}</span><span className="score-bad">✘ {bad}</span><span>正确率 <b>{done?Math.round(good/done*100)+'%':'—'}</b></span></span><div className="dp-track"><span style={{width:done/attempt.ids.length*100+'%'}}/></div></div>
     <div className="dp-group-tabs" role="tablist" aria-label="主题分组">{grouped.map((g,i)=><button role="tab" aria-selected={attempt.group===i} key={g.label} className={attempt.group===i?'active':''} onClick={()=>act('group',i,null,attempt.id)}>第 {i+1} 组</button>)}</div>
     <div className="dp-theme"><span>{String(attempt.group+1).padStart(2,'0')}</span><div><h3 lang="fr">{group.label}</h3><p>{themeFor(book,first)}</p></div><small>{group.ids.length} 词</small></div>

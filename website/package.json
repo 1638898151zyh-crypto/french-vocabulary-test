@@ -1,6 +1,6 @@
 {
   "name": "edito-b1-atelier",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "private": true,
   "type": "module",
   "scripts": {
@@ -17,6 +17,7 @@
     "test:pwa": "node scripts/test-pwa.mjs",
     "test:android": "node scripts/test-native-app.mjs",
     "build:cloudflare": "vite build --mode cloudflare",
+    "test:choices": "node scripts/test-choice-navigation.mjs",
     "test:recovery": "node scripts/test-password-recovery.mjs && node scripts/test-supabase-account.mjs",
     "test:cloudflare": "node scripts/test-cloudflare.mjs && node scripts/test-supabase-account.mjs && node scripts/test-migration-local.mjs"
   },

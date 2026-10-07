@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "packageId": "app.netlify.franmotest",
-  "versionName": "1.1.4",
-  "versionCode": 7,
-  "apkUrl": "https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.4/Franmotest-1.1.4-Android.apk",
-  "sha256": "81b595f6a3a46a358fd7f2bd80eecf290e1cfc62dd3df33f1f1f620d0c59de50",
-  "size": 2303380,
-  "notes": "支持邮箱 6 位验证码找回密码，在 App 内验证后设置新密码；新密码可以和旧密码相同，保留账号及学习记录。"
+  "versionName": "1.1.5",
+  "versionCode": 8,
+  "apkUrl": "https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.5/Franmotest-1.1.5-Android.apk",
+  "sha256": "5a4e92c3ad1a1bc0c77b9789cc2d7b43a21f93cae2d06e791c25808f92869050",
+  "size": 2307476,
+  "notes": "优化手机顺序、布局和章节主题选择菜单；词库统计底部新增上一个/下一个 Part 与主题切换。"
 }

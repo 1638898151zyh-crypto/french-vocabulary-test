@@ -9,6 +9,7 @@ export function saveNativeText(filename,content,type){
 }
 export function startNativeApp(){
   if(!isNativeApp)return;
+  document.documentElement.dataset.nativeApp='true';
   window.franmotestBack=()=>{
     const dialog=document.querySelector('[aria-modal="true"]');
     if(dialog){const close=dialog.querySelector('button[aria-label^="关闭"]');if(close&&!close.disabled)close.click();return true;}

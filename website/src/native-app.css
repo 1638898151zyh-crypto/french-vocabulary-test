@@ -1,0 +1,19 @@
+/* Android already reserves system bars and cutouts around the WebView. */
+html[data-native-app='true'] .dp-production .dp-topbar {
+  height: auto;
+  min-height: 56px;
+  padding: 6px 16px;
+  gap: 10px;
+}
+html[data-native-app='true'] .dp-mobile-nav {padding-bottom: 8px;}
+@media (max-width: 760px) {
+  html[data-native-app='true'] .dp-switch {min-height: 40px; padding: 5px 9px;}
+  html[data-native-app='true'] .dp-switch .switch-cover {width: 24px; height: 28px;}
+  html[data-native-app='true'] .dp-switch small {margin-bottom: 2px;}
+  html[data-native-app='true'] .dp-top-right {gap: 8px;}
+  html[data-native-app='true'] .dp-production .dp-content {padding-top: 12px; padding-bottom: 100px;}
+  html[data-native-app='true'] .dp-production .dp-switch-menu {
+    top: 62px;
+    max-height: calc(100dvh - 150px);
+  }
+}

@@ -7,7 +7,7 @@ const busy=s=>['checking','downloading','permission','installing'].includes(s.ph
 const label=s=>s.phase==='downloading'?`下载中 ${s.progress}%`:s.phase==='permission'?'等待允许安装':s.phase==='installing'?'等待安装确认':s.phase==='ready'?'继续安装':'下载并更新';
 export function NativeUpdateBanner(){
  const s=useNativeUpdate();if(!isNativeApp||!s.available)return null;
- return <section className="native-update-banner" aria-label="安卓 App 更新提示"><RefreshCw size={19}/><div><strong>Franmotest {s.latestVersion} 可更新</strong><small role="status">{s.phase==='available'?'新版已准备好，更新后继续学习':s.message}</small></div><button className="dp-button primary" disabled={busy(s)||navigator.onLine===false&&s.phase!=='ready'} onClick={installNativeUpdate}>{label(s)}<ArrowRight size={14}/></button>{s.phase==='downloading'&&<progress value={s.progress} max={100} aria-label="更新下载进度"/>}</section>;
+ return <section className="native-update-banner" aria-label="安卓 App 更新提示"><RefreshCw size={17}/><div><strong>新版本 {s.latestVersion}</strong><small role="status">{s.phase==='available'?'更新后继续学习':s.message}</small></div><button className="dp-button primary" disabled={busy(s)||navigator.onLine===false&&s.phase!=='ready'} onClick={installNativeUpdate}>{s.phase==='available'?'更新 App':label(s)}<ArrowRight size={14}/></button>{s.phase==='downloading'&&<progress value={s.progress} max={100} aria-label="更新下载进度"/>}</section>;
 }
 export function NativeUpdateSettings(){
  const s=useNativeUpdate();if(!isNativeApp)return null;

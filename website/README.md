@@ -1,4 +1,4 @@
-# Franmotest 1.1.1 · 法语词汇学习网站
+# Franmotest 1.1.2 · 法语词汇学习网站
 
 **Franmotest** 由 **Français（法语）、mots（单词）、test（检测）** 组合而来。
 

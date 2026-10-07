@@ -86,7 +86,8 @@ public final class MainActivity extends ComponentActivity {
                 WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout()
                     | WindowInsetsCompat.Type.ime());
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return insets;
+            // The root owns these insets; avoid reserving them again inside WebView.
+            return WindowInsetsCompat.CONSUMED;
         });
         updater = new AppUpdater(this);
         createWebView();

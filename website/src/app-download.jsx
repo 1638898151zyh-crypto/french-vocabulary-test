@@ -4,7 +4,7 @@ import {usePwa,installPwa} from './pwa.js';
 import {isNativeApp} from './native-app.js';
 import {checkNativeUpdate} from './native-updates.js';
 import './pwa.css';
-const apk='https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.1/Franmotest-1.1.1-Android.apk';
+const apk='https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.2/Franmotest-1.1.2-Android.apk';
 export function AppDownload({id}){
  const pwa=usePwa(),[type,setType]=useState(isNativeApp?'android':'web'),[help,setHelp]=useState(false),[busy,setBusy]=useState(false);
  async function install(){setBusy(true);try{if(!pwa.canInstall||!await installPwa())setHelp(true);}finally{setBusy(false);}}
@@ -17,5 +17,6 @@ export function AppDownload({id}){
  </section>;
 }
 export function AppDownloadShortcut(){
+ if(isNativeApp)return null;
  return <button className="app-download-shortcut" onClick={()=>{const target=document.getElementById('home-app-download');target?.scrollIntoView({behavior:'smooth',block:'start'});target?.focus({preventScroll:true});}}><Smartphone size={18}/><span><strong>下载 App</strong><small>网页版 / 安卓版 · 选择你的版本</small></span><ChevronRight size={17}/></button>;
 }

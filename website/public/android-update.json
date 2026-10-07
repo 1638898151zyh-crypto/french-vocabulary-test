@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "packageId": "app.netlify.franmotest",
-  "versionName": "1.1.1",
-  "versionCode": 4,
-  "apkUrl": "https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.1/Franmotest-1.1.1-Android.apk",
-  "sha256": "0a03ed69c9fd42f161239bf232a529c04db56f075e1600f06b49982386abeaa8",
+  "versionName": "1.1.2",
+  "versionCode": 5,
+  "apkUrl": "https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.2/Franmotest-1.1.2-Android.apk",
+  "sha256": "66c6166ba538669f252369aad384e4c4a45bba666d5dfc8324cfc311ef87f4e1",
   "size": 2254228,
-  "notes": "新增 App 内检查更新、下载并安装；首页提示新版，覆盖更新保留学习记录。"
+  "notes": "压缩 App 顶部留白，修复重复安全区；首页移除下载入口，仅在有新版时提示更新 App。"
 }

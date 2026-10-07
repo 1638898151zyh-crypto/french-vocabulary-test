@@ -8,7 +8,7 @@
 
 [网站介绍与使用教程](https://franmotest.netlify.app/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
 
-**[下载 Franmotest 1.1.1 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.1/Franmotest-1.1.1-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。1.1.1 起支持在设置检查更新、App 内下载并打开安卓安装确认，首页提示新版。
+**[下载 Franmotest 1.1.2 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.2/Franmotest-1.1.2-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。1.1.1 起支持在设置检查更新、App 内下载并打开安卓安装确认，首页提示新版。
 
 网站主导航为 **首页、课本过关、每日检测、词库统计、设置**。首页展示当前课本进度、已自评词汇与累计判定，并提供“我的课本”入口；教程可从首页和设置打开。首页顶部提供 App 下载快捷入口，底部可选择网页版 App（PWA）或安卓版 App（APK），并说明两者区别。
 

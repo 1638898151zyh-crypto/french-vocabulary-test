@@ -9,6 +9,7 @@
     "test": "node scripts/test.mjs",
     "typecheck": "tsc --noEmit",
     "test:import": "node scripts/test-vocabulary-import.mjs",
+    "test:a1": "node scripts/test-edito-a1.mjs",
     "test:study": "node scripts/test-preview-study.mjs",
     "test:navigation": "node scripts/test-preview-navigation.mjs",
     "test:account": "node scripts/test-account-session.mjs",

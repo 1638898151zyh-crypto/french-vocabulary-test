@@ -233,7 +233,7 @@ export function loadImportedLibrary(storage){
     if(data.version!==1||!Array.isArray(data.books)||data.books.length>30)throw Error('invalid library');
     const seen=new Set();
     const books=data.books.map(b=>{
-      if(!b?.imported||typeof b.id!=='string'||!b.id||['edito-b1','inspire-a1','edito-a2-2022','my-notebook'].includes(b.id)||seen.has(b.id)||!text(b.name)||b.name.length>48||!['A1','A2','B1','B2','C1','C2','自由'].includes(b.level))throw Error('invalid book');
+      if(!b?.imported||typeof b.id!=='string'||!b.id||['edito-b1','inspire-a1','edito-a2-2022','edito-a1-2022','my-notebook'].includes(b.id)||seen.has(b.id)||!text(b.name)||b.name.length>48||!['A1','A2','B1','B2','C1','C2','自由'].includes(b.level))throw Error('invalid book');
       seen.add(b.id);
       const entries=validateEntries(b.bank);
       const restored=makeImportedBook({entries,summary:vocabularySummary(entries),filename:text(b.sourceFilename)},b,b.id);

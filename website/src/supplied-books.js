@@ -2,6 +2,8 @@ import inspireBank from '../../assets/inspire-a1-bank.json' with {type:'json'};
 import inspireTitles from '../../assets/inspire-a1-titles.json' with {type:'json'};
 import editoA2Bank from '../../assets/edito-a2-2022-bank.json' with {type:'json'};
 import editoA2Titles from '../../assets/edito-a2-2022-titles.json' with {type:'json'};
+import editoA1Bank from '../../assets/edito-a1-2022-bank.json' with {type:'json'};
+import editoA1Titles from '../../assets/edito-a1-2022-titles.json' with {type:'json'};
 import {makeImportedBook,vocabularySummary} from './vocabulary-import.js';
 
 const translatedBank=inspireBank.map(entry=>({
@@ -39,4 +41,22 @@ export const editoA2Book = {
   remember:false,
   subtitle:'2022 年第 2 版，850 条专题词汇；Part 与主题均含中文标题。',
   notice:'覆盖 24 个专题词汇 Part。848 条音标仍待校核；另外 2 条保留文件原有的已校对标记，不代表本次重新核验。',
+};
+
+const translatedA1Bank=editoA1Bank.map(entry=>{
+  const part=`U${entry.unite}P${entry.partie}`;
+  return {...entry,partie_title_zh:editoA1Titles.parts[part],group_zh:editoA1Titles.themesByPart[`${part}::${entry.group}`]||editoA1Titles.themes[entry.group]};
+});
+
+export const editoA1Book = {
+  ...makeImportedBook(
+    {entries:translatedA1Bank,summary:vocabularySummary(translatedA1Bank),filename:'Édito_A1_2022_标准词库.csv'},
+    {name:'Édito A1',level:'A1',edition:'2022 · 第 2 版'},
+    'edito-a1-2022',
+  ),
+  series:'Édito',
+  supplied:true,
+  remember:false,
+  subtitle:'2022 年第 2 版，566 条专题词汇；Part 与主题均含中文标题。',
+  notice:'覆盖 10 个单元、20 个专题词汇 Part、80 个主题组。组合词条保留原书编排，不按词形去重；全部 566 条音标仍待校对。',
 };

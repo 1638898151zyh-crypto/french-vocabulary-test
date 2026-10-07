@@ -5,6 +5,8 @@ const checked=result=>{
   if(error.code==='invalid_credentials')throw Object.assign(Error('邮箱或密码不正确，请重新输入。'),{status:401});
   if(error.code==='email_not_confirmed')throw Error('请先通过邮箱验证，再登录。');
   if(error.code==='over_email_send_rate_limit')throw Error('邮件发送过于频繁，请稍后再试。');
+  if(['otp_expired','otp_disabled','invalid_token'].includes(error.code))throw Error('验证码不正确或已过期，请检查后重试，或重新发送。');
+  if(error.status===429)throw Error('操作过于频繁，请稍后再试。');
   throw error;
  }
  return result.data;
@@ -38,7 +40,22 @@ export async function login(email,password){return normalizeUser(checked(await s
 export async function signup(email,password,data){return normalizeUser(checked(await supabaseClient().auth.signUp({email,password,options:{data,emailRedirectTo:redirect()}})).user);}
 export async function logout(){checked(await supabaseClient().auth.signOut({scope:'local'}));}
 export async function requestPasswordRecovery(email){checked(await supabaseClient().auth.resetPasswordForEmail(email,{redirectTo:redirect()}));}
+export async function verifyPasswordRecovery(email,token){
+ const code=String(token||'').replace(/\s/g,'');
+ if(!/^\d{6}$/.test(code))throw Error('请输入邮件中的 6 位验证码。');
+ const data=checked(await supabaseClient().auth.verifyOtp({email:email.trim(),token:code,type:'recovery'}));
+ if(!data.session||!data.user)throw Error('验证未完成，请重新获取验证码。');
+ return normalizeUser(data.user);
+}
 export async function updateUser({data,password}){return normalizeUser(checked(await supabaseClient().auth.updateUser({...data&&{data},...password&&{password}})).user);}
+export async function resetRecoveredPassword(password){
+ if(typeof password!=='string'||password.length<8)throw Error('新密码至少需要 8 位。');
+ const result=await supabaseClient().auth.updateUser({password});
+ // Auth rejects an unchanged password. After verified recovery it already matches
+ // the requested password, so this is a successful no-op; do not replace it temporarily.
+ if(result.error?.code==='same_password')return {unchanged:true};
+ checked(result);return {unchanged:false};
+}
 export async function acceptInvite(_token,password){return updateUser({password});}
 export async function handleAuthCallback(){
  const params=new URLSearchParams(location.hash.slice(1));

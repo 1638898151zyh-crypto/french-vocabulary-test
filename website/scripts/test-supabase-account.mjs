@@ -20,7 +20,13 @@ function browser(saved){
   }
   if(url.endsWith('/user')){
    assert.equal(new Headers(options.headers).get('Authorization'),'Bearer '+token);
+   if(options.method==='PUT'&&JSON.parse(options.body).password==='same-password')return Response.json({code:'same_password',message:'Password must differ'},{status:422,headers:{'x-supabase-api-version':'2024-01-01'}});
    return Response.json(options.method==='PUT'?{...user,user_metadata:{...user.user_metadata,...JSON.parse(options.body).data}}:user);
+  }
+  if(url.endsWith('/verify')){
+   const body=JSON.parse(options.body);assert.equal(body.type,'recovery');assert.equal(body.email,user.email);
+   if(body.token!=='123456')return Response.json({code:'otp_expired',message:'Token expired or invalid'},{status:403,headers:{'x-supabase-api-version':'2024-01-01'}});
+   return Response.json({access_token:token,refresh_token:'test-refresh',expires_in:3600,token_type:'bearer',user});
   }
   if(url.includes('/logout'))return new Response(null,{status:204});
   return Response.json(url.endsWith('/settings')?{disable_signup:false}:{});
@@ -52,5 +58,17 @@ test('recovery callback verifies the session, opens password reset and removes t
   w.location.hash='access_token='+token+'&refresh_token=test-refresh&type=recovery';
   const result=await w.Identity.handleAuthCallback();assert.equal(result.type,'recovery');assert.equal(result.user.id,'old-account');assert.equal(w.location.hash,'#/home');
   assert.equal((await w.Identity.getUser()).authId,user.id);await w.Identity.logout();
+ }finally{dom.window.close();}
+});
+test('email recovery requires a valid recovery OTP before password reset, supports unchanged passwords and preserves account identity',async()=>{
+ const {dom,w,calls}=browser();try{
+  await assert.rejects(w.Identity.verifyPasswordRecovery(user.email,'12'),/6 位/);assert.equal(calls.length,0);
+  await assert.rejects(w.Identity.verifyPasswordRecovery(user.email,'000000'),/验证码不正确或已过期/);assert.equal(await w.Identity.getUser(),null);
+  const recovered=await w.Identity.verifyPasswordRecovery(' '+user.email+' ','123 456');assert.equal(recovered.id,'old-account');
+  await assert.rejects(w.Identity.resetRecoveredPassword('short'),/8 位/);
+  assert.equal((await w.Identity.resetRecoveredPassword('same-password')).unchanged,true);
+  assert.equal((await w.Identity.resetRecoveredPassword('new-password')).unchanged,false);
+  assert.equal((await w.Identity.getUser()).id,'old-account');
+  assert.equal(calls.filter(c=>c.url.endsWith('/user')&&c.options.method==='PUT').length,2);await w.Identity.logout();
  }finally{dom.window.close();}
 });

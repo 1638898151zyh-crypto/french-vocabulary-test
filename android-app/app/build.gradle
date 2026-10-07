@@ -6,8 +6,8 @@ android {
         applicationId 'app.netlify.franmotest'
         minSdk 23
         targetSdk 36
-        versionCode = (project.findProperty('qaVersionCode') ?: '6').toString().toInteger()
-        versionName = (project.findProperty('qaVersionName') ?: '1.1.3').toString()
+        versionCode = (project.findProperty('qaVersionCode') ?: '7').toString().toInteger()
+        versionName = (project.findProperty('qaVersionName') ?: '1.1.4').toString()
         def migrated = System.getenv('FRANMOTEST_BACKEND') == 'supabase'
         def apiHost = migrated ? new URI(System.getenv('VITE_SITE_URL')).host : 'franmotest.netlify.app'
         def authHost = migrated ? new URI(System.getenv('VITE_SUPABASE_URL')).host : 'franmotest.netlify.app'

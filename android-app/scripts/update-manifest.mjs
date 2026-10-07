@@ -5,6 +5,6 @@ const apk=new URL(`../../.netlify/releases/android-${config.appVersion}/Franmote
 const manifest={schema:1,packageId:config.packageId,versionName:config.appVersion,versionCode:config.appVersionCode,
  apkUrl:`https://github.com/Alain-0721/french-vocabulary-test/releases/download/v${config.appVersion}/Franmotest-${config.appVersion}-Android.apk`,
  sha256:createHash('sha256').update(readFileSync(apk)).digest('hex'),size:statSync(apk).size,
- notes:'网站和账号迁至 Cloudflare 与 Supabase，保留学习记录；App 更新检查改用 GitHub。原账号首次登录需重设密码。'};
+ notes:'支持邮箱 6 位验证码找回密码，在 App 内验证后设置新密码；新密码可以和旧密码相同，保留账号及学习记录。'};
 writeFileSync(new URL('../../website/public/android-update.json',import.meta.url),JSON.stringify(manifest,null,2)+'\n');
 console.log(`Android update metadata ready: ${manifest.versionName}, build ${manifest.versionCode}`);

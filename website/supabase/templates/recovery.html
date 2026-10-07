@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>Franmotest 找回密码</title></head>
+<body style="font-family:Arial,sans-serif;color:#29364a;line-height:1.8">
+ <h2>Franmotest 找回密码</h2>
+ <p>请在网站或 App 的“找回密码”页面输入以下验证码：</p>
+ <p style="font-size:30px;font-weight:bold;letter-spacing:6px">{{ .Token }}</p>
+ <p>验证码在 10 分钟内有效，只可使用一次。重新发送后，请使用最新验证码。</p>
+ <p>验证后即可设置密码，也可以继续使用原密码；原学习记录保留。</p>
+ <p>如果不是你本人操作，请忽略这封邮件。</p>
+ <p style="font-size:12px;color:#6b7280">使用旧版本时，也可<a href="{{ .ConfirmationURL }}">打开密码恢复页面</a>。</p>
+</body></html>

@@ -1,4 +1,4 @@
-# 安装 Franmotest 1.1.3 · 法语词汇学习
+# 安装 Franmotest 1.1.4 · 法语词汇学习
 
 安装入口：[https://franmotest.pages.dev/](https://franmotest.pages.dev/)
 
@@ -26,11 +26,15 @@
 
 离线重启可继续上次账号在这台设备上的记录，并显示“需联网验证”。登录失效时重新登录原账号；云端冲突时先导出本机备份，再决定恢复范围。安装后如没有看到原浏览器的游客记录，可先从浏览器导出完整备份，再在应用中导入。
 
+## 找回密码
+
+登录窗口选择“忘记密码”，输入注册邮箱，填写邮件中的 6 位验证码，再设置新密码。验证码 10 分钟有效，60 秒后可重发；新密码至少 8 位，可以与旧密码相同，学习记录保留。
+
 ## 发布附件用途
 
 - `Franmotest-Install.url`：Windows 网站快捷入口，打开后在浏览器中安装。
 - `Franmotest-Installation.md`：手机与电脑的安装说明。
-- `Franmotest-PWA-1.1.3.zip`：已构建的 Cloudflare Pages 部署包，包含应用、词库、图标、离线文件和 API Worker；自行部署仍需配置 Supabase 及允许来源，不包含数据库、私有密钥或用户记录，不是手机安装程序。
+- `Franmotest-PWA-1.1.4.zip`：已构建的 Cloudflare Pages 部署包，包含应用、词库、图标、离线文件和 API Worker；自行部署仍需配置 Supabase 及允许来源，不包含数据库、私有密钥或用户记录，不是手机安装程序。
 - GitHub 自动提供的 Source code：对应版本源码。
 
 自行托管时，把 ZIP 中的网站文件发布到 HTTPS 网站根目录（本机验收可使用 localhost），再从浏览器安装。不要直接双击本地 `index.html`。静态部署包可以使用游客模式，但不包含 Netlify 账号云函数；完整账号服务的部署方法见源码 `website/README.md`。

@@ -1,10 +1,10 @@
-# Franmotest 1.1.3 · 独立 Android App
+# Franmotest 1.1.4 · 独立 Android App
 
 Android APK 自带 React 学习界面与三本完整词库，通过原生 Activity 和 Android WebView 在应用内运行。移除了 TWA、Custom Tabs 和 Android Browser Helper，学习不依赖外部浏览器，首次启动即可离线检测。
 
-包名 `app.netlify.franmotest`，版本名 `1.1.3`，内部版本号 `6`，最低 Android 6.0（API 23）。同一发布签名允许覆盖升级此前版本。
+包名 `app.netlify.franmotest`，版本名 `1.1.4`，内部版本号 `7`，最低 Android 6.0（API 23）。同一发布签名允许覆盖升级此前版本。
 
-[下载安装说明](INSTALL.md) · [下载 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.3/Franmotest-1.1.3-Android.apk)
+[下载安装说明](INSTALL.md) · [下载 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.4/Franmotest-1.1.4-Android.apk)
 
 ## 界面、文件与账号
 
@@ -30,7 +30,7 @@ npm run build
 
 `build.mjs` 读取项目根目录 `.netlify/android-tools/config.json` 中的 `jdkPath` 与 `androidSdkPath`，生成 Release/Debug、运行 Android Lint，再对发布 APK 对齐、签名与校验。签名配置为 `app-config.json`，密码只从本机 `.netlify/android-signing/password.json` 读取。私有密钥与密码不进入仓库或 Release。请私下备份，未来升级需继续使用相同签名并增加内部版本号。
 
-迁移构建需提供 [网站迁移说明](../website/CLOUDFLARE-MIGRATION.md) 中的公开环境变量。产物位于 `.netlify/releases/android-1.1.3/`。也可用 Android Studio 打开本目录构建。应用发布为 APK；Google Play 上架需另行准备 AAB 和商店资料。
+迁移构建需提供 [网站迁移说明](../website/CLOUDFLARE-MIGRATION.md) 中的公开环境变量。产物位于 `.netlify/releases/android-1.1.4/`。也可用 Android Studio 打开本目录构建。应用发布为 APK；Google Play 上架需另行准备 AAB 和商店资料。
 
 ```powershell
 # 在 website 目录，先构建 native assets

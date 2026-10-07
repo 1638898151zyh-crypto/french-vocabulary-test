@@ -8,7 +8,9 @@
 
 [网站介绍与使用教程](https://franmotest.pages.dev/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
 
-**[下载 Franmotest 1.1.3 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.3/Franmotest-1.1.3-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。设置可检查更新，首页提示新版。
+**[下载 Franmotest 1.1.4 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.4/Franmotest-1.1.4-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。设置可检查更新，首页提示新版。
+
+**1.1.4 更新**：找回密码支持邮箱 6 位验证码验证后设置新密码，验证码 10 分钟有效，支持重发；新密码可以与旧密码相同。网站与安卓版均可使用，原账号和学习记录保留。
 
 **1.1.3 迁移更新**：网站改由 Cloudflare Pages 托管，账号、云端记录和头像改由 Supabase 提供，新版运行不依赖 Netlify。原账号、昵称、头像和逐词统计保留；原账号首次登录请用原邮箱“忘记密码”设置新密码，不要重新注册。旧 APK 的更新地址已经内置，首次请手动下载新版覆盖安装，保留本机数据；新版从 GitHub 检查更新。
 

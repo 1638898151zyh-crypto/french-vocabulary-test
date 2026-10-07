@@ -7,7 +7,8 @@ const publicFiles=['/favicon.svg','/manifest.webmanifest','/icons/icon-192.png',
 export function pwaBuild(){return {
  name:'franmo-pwa',apply:'build',
  generateBundle:{order:'post',handler(_options,bundle){
-  const output=Object.values(bundle).filter(item=>item.fileName==='index.html'||/\.(js|css)$/.test(item.fileName));
+  // Hosting workers are server code, never part of the installed app shell.
+  const output=Object.values(bundle).filter(item=>item.fileName==='index.html'||/^assets\/.*\.(js|css)$/.test(item.fileName));
   const hash=createHash('sha256').update(workerTemplate);
   for(const item of output)hash.update(item.fileName).update(item.type==='chunk'?item.code:String(item.source));
   for(const file of publicFiles)hash.update(readFileSync(fileURLToPath(new URL('../public'+file,import.meta.url))));

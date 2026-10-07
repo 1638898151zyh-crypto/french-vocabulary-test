@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 /** Update only this package, through user-confirmed Android installation. */
 final class AppUpdater {
     private static final long MAX_APK = 64L * 1024 * 1024;
-    private static final String MANIFEST = "https://franmotest.netlify.app/android-update.json";
+    private static final String MANIFEST = "https://raw.githubusercontent.com/Alain-0721/french-vocabulary-test/main/website/public/android-update.json";
     private static final String RELEASE = "https://github.com/Alain-0721/french-vocabulary-test/releases/download/";
     private final MainActivity activity;
     private final SharedPreferences preferences;

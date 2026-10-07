@@ -31,10 +31,11 @@ test('offline shell and build assets survive navigation; private APIs, previews 
  w.handlers.get('message')({data:{type:'IGNORE'}});assert.equal(w.skipped(),0);w.handlers.get('message')({data:{type:'ACTIVATE_UPDATE'}});assert.equal(w.skipped(),1);
 });
 test('production worker precaches every generated script, stylesheet and manifest icon',()=>{
- assert.ok(existsSync('dist/sw.js'),'Run npm run build before test:pwa');const sw=readFileSync('dist/sw.js','utf8');assert.ok(!sw.includes('__PRECACHE_FILES__'));const list=JSON.parse(sw.match(/const FILES=(.*);/)[1]);
- for(const file of list)assert.ok(existsSync('dist'+file),file+' is missing');
+ const output=process.env.FRANMOTEST_BACKEND==='supabase'?'dist-cloudflare':'dist';
+ assert.ok(existsSync(output+'/sw.js'),'Build the matching backend before test:pwa');const sw=readFileSync(output+'/sw.js','utf8');assert.ok(!sw.includes('__PRECACHE_FILES__'));const list=JSON.parse(sw.match(/const FILES=(.*);/)[1]);
+ for(const file of list)assert.ok(existsSync(output+file),file+' is missing');
  assert.ok(list.includes('/index.html'));assert.ok(list.includes('/manifest.webmanifest'));assert.ok(list.some(file=>file.startsWith('/assets/browser-')));
- const html=readFileSync('dist/index.html','utf8');for(const path of html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g))assert.ok(list.includes(path[1]));
+ const html=readFileSync(output+'/index.html','utf8');for(const path of html.matchAll(/(?:src|href)="(\/assets\/[^\"]+)"/g))assert.ok(list.includes(path[1]));
 });
 test('local account selector stores display data only, rejects invalid records and clears on logout',()=>{
  const map=new Map(),storage={getItem:key=>map.get(key),setItem:(key,value)=>map.set(key,value),removeItem:key=>map.delete(key)};

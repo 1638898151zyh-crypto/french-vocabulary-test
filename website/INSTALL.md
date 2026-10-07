@@ -1,6 +1,6 @@
-# 安装 Franmotest 1.0 · 法语词汇学习
+# 安装 Franmotest 1.1.3 · 法语词汇学习
 
-安装入口：**https://franmotest.netlify.app/**
+安装入口：[https://franmotest.pages.dev/](https://franmotest.pages.dev/)
 
 这是可安装到桌面的 PWA 应用。无需下载 ZIP：先联网打开网站，从首页或设置选择“安装到桌面”。
 
@@ -30,7 +30,7 @@
 
 - `Franmotest-Install.url`：Windows 网站快捷入口，打开后在浏览器中安装。
 - `Franmotest-Installation.md`：手机与电脑的安装说明。
-- `Franmotest-PWA-1.0.zip`：已构建的静态网站部署包，包含应用、内置词库、图标、应用清单和离线文件；供自行托管使用，不是 APK、IPA 或 EXE 安装程序。
+- `Franmotest-PWA-1.1.3.zip`：已构建的 Cloudflare Pages 部署包，包含应用、词库、图标、离线文件和 API Worker；自行部署仍需配置 Supabase 及允许来源，不包含数据库、私有密钥或用户记录，不是手机安装程序。
 - GitHub 自动提供的 Source code：对应版本源码。
 
 自行托管时，把 ZIP 中的网站文件发布到 HTTPS 网站根目录（本机验收可使用 localhost），再从浏览器安装。不要直接双击本地 `index.html`。静态部署包可以使用游客模式，但不包含 Netlify 账号云函数；完整账号服务的部署方法见源码 `website/README.md`。

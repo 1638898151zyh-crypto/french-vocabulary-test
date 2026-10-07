@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState} from 'react';
+import {apiFetch as fetch} from './api-fetch.js';
 import {getUser,getSettings,handleAuthCallback,onAuthChange,refreshSession} from '@netlify/identity';
 import {fresh,restoreBundle} from './engine';
 import {rememberIdentitySession,restoreIdentitySession} from './identity-session';

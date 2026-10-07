@@ -6,7 +6,7 @@ import {Settings,Records,WordRow} from './study-preview-ui.jsx';
 import {AppDownload as PwaInstall,AppDownloadShortcut} from './app-download.jsx';
 import {NativeUpdateBanner,NativeUpdateSettings} from './native-update-ui.jsx';
 
-export const PRODUCTION='https://franmotest.netlify.app';
+export const PRODUCTION=import.meta.env?.VITE_SITE_URL?.replace(/\/$/,'')||'https://franmotest.pages.dev';
 const short=p=>p?.replace(/^U(\d+)P(\d+)$/,'U$1 · P$2')||'';
 export function Home({books=[],book,state,go,titleFor,production=false}){
   const a=state&&Study.active(state),passed=state?Study.masteredCount(state):0,total=state?.order.length||0,stats=Object.values(state?.stats||{}),ratings=stats.reduce((n,c)=>n+c.good+c.bad,0),first=book.bank?.[0];

@@ -1,3 +1,4 @@
+import {apiFetch,apiUrl} from './api-fetch.js';
 export const MAX_AVATAR_FILE=5*1024*1024;
 export const MAX_AVATAR_BYTES=256*1024;
 export function profileName(value){
@@ -8,7 +9,7 @@ export function profileName(value){
 export function avatarUrl(user){
   const value=user?.pictureUrl;
   if(typeof value!=='string')return '';
-  if(/^\/api\/avatar\/[a-f0-9-]+\.(webp|png|jpg)$/i.test(value))return value;
+  if(/^\/api\/avatar\/[a-f0-9-]+\.(webp|png|jpg)$/i.test(value))return apiUrl(value);
   try{const url=new URL(value);return url.protocol==='https:'?url.href:'';}catch{return '';}
 }
 export async function prepareAvatar(file){
@@ -27,14 +28,14 @@ export async function prepareAvatar(file){
     return blob;
   }finally{image.close();}
 }
-export async function uploadAvatar(blob,fetcher=fetch){
+export async function uploadAvatar(blob,fetcher=apiFetch){
   const response=await fetcher('/api/avatar',{method:'POST',credentials:'same-origin',headers:{'Content-Type':blob.type},body:blob});
   let result;try{result=await response.json();}catch{throw Error('头像上传未完成，请稍后重试。');}
   if(!response.ok)throw Error(result.error||'头像上传未完成，请稍后重试。');
   if(!/^\/api\/avatar\/[a-f0-9-]+\.(webp|png|jpg)$/i.test(result.url||''))throw Error('头像地址无效，请重试。');
   return result.url;
 }
-export async function saveProfile({name,picture,file,uploaded},identity,fetcher=fetch){
+export async function saveProfile({name,picture,file,uploaded},identity,fetcher=apiFetch){
   const full_name=profileName(name),data={full_name};
   if(file)data.avatar_url=uploaded||await uploadAvatar(file,fetcher);
   else if(picture!==undefined)data.avatar_url=picture;

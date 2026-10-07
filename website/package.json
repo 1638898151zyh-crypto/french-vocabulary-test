@@ -1,6 +1,6 @@
 {
   "name": "edito-b1-atelier",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,24 +15,28 @@
     "test:production": "node scripts/test-multi-production.mjs",
     "test:profile": "node scripts/test-account-profile.mjs",
     "test:pwa": "node scripts/test-pwa.mjs",
-    "test:android": "node scripts/test-native-app.mjs"
+    "test:android": "node scripts/test-native-app.mjs",
+    "build:cloudflare": "vite build --mode cloudflare",
+    "test:cloudflare": "node scripts/test-cloudflare.mjs && node scripts/test-supabase-account.mjs && node scripts/test-migration-local.mjs"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "lucide-react": "^0.468.0",
-    "@netlify/identity": "latest",
     "@netlify/blobs": "latest",
     "@netlify/functions": "latest",
+    "@netlify/identity": "latest",
+    "@supabase/supabase-js": "^2.117.2",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "read-excel-file": "9.3.10"
   },
   "devDependencies": {
-    "vite": "latest",
-    "@vitejs/plugin-react": "latest",
+    "@electric-sql/pglite": "^0.5.8",
     "@netlify/vite-plugin": "latest",
-    "typescript": "latest",
     "@types/node": "latest",
+    "@vitejs/plugin-react": "latest",
     "jsdom": "^30.1.1",
-    "netlify-cli": "latest"
+    "netlify-cli": "latest",
+    "typescript": "latest",
+    "vite": "latest"
   }
 }

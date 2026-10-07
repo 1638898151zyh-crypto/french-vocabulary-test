@@ -3,6 +3,8 @@ import {getUser,getSettings,handleAuthCallback,onAuthChange,refreshSession} from
 import {freshMulti as fresh,restoreMulti as restoreBundle,migrateClassic,touchMulti} from './multi-learning.js';
 import {rememberIdentitySession,restoreIdentitySession} from './identity-session';
 import {rememberLocalAccount,readLocalAccount} from './offline-account.js';
+import {apiFetch as fetch} from './api-fetch.js';
+import {backendConfigured} from './supabase-client.js';
 const prefix='franmo-atelier:v2:';
 function readCache(key){try{let raw=localStorage.getItem(key);if(!raw){const legacy=JSON.parse(localStorage.getItem(key.replace(prefix,'edito-atelier:v1:'))||'null');if(!legacy)return null;const migrated=migrateClassic(legacy.bundle);const theme=localStorage.getItem('edito-theme');if(migrated&&['light','dark','system'].includes(theme))migrated.theme=theme;return migrated?{bundle:migrated,dirty:true,etag:null}:{corrupt:true};}const data=JSON.parse(raw);return {...data,bundle:restoreBundle(data.bundle),corrupt:!restoreBundle(data.bundle)};}catch{return {corrupt:true};}}
 export function useMultiLearning(enabled=true){
@@ -58,7 +60,7 @@ export function useMultiLearning(enabled=true){
   (async()=>{
    try{const result=/(access_token|confirmation_token|recovery_token|invite_token|email_change_token)=/.test(location.hash)?await handleAuthCallback():null;if(result&&alive)setAuthCallback(result);}catch{if(alive)setMessage('账号验证链接未生效，请重新获取验证邮件。');}
    if(navigator.onLine===false){const last=readLocalAccount();if(alive){await load(null,last);setSettings(false);}return;}
-   try{const restored=await restoreIdentitySession({getUser,refreshSession});if(alive)await load(restored);}catch{if(alive){await load(null,readLocalAccount());setMessage('账号服务暂不可用，先使用本机记录；联网后可重新登录。');}}
+   try{const restored=await restoreIdentitySession({getUser,refreshSession});if(alive)await load(restored,!restored&&backendConfigured?readLocalAccount():null);}catch{if(alive){await load(null,readLocalAccount());setMessage('账号服务暂不可用，先使用本机记录；联网后可重新登录。');}}
    try{const config=await getSettings();if(alive)setSettings(config);}catch{if(alive)setSettings(false);}
   })();
   const unsubscribe=onAuthChange((_event,next)=>{if(next){rememberIdentitySession();rememberLocalAccount(next);}if(alive){if((next?.id||null)!==uid.current||next&&localOwner.current)load(next);else if(next)setUser(next);else if(/logout/i.test(_event)){rememberLocalAccount(null);load(null);}}});
@@ -66,7 +68,7 @@ export function useMultiLearning(enabled=true){
    if(!alive)return;
    if(!localOwner.current&&!uid.current){try{const config=await getSettings();if(alive)setSettings(config);}catch{}return;}
    cache(current.current,clean.current!==current.current.generation);
-   try{const next=await restoreIdentitySession({getUser,refreshSession});if(!alive)return;await load(next);if(!next)setMessage('登录已失效。原账号的离线记录仍保存在本机，请重新登录原账号后同步。');const config=await getSettings();if(alive)setSettings(config);}catch{if(alive)setMessage('暂时无法恢复账号连接，本机记录保留，请稍后重试。');}
+   try{const next=await restoreIdentitySession({getUser,refreshSession});if(!alive)return;await load(next,!next&&backendConfigured?readLocalAccount():null);if(!next)setMessage('登录已失效。原账号的离线记录仍保存在本机，请重新登录原账号后同步。');const config=await getSettings();if(alive)setSettings(config);}catch{if(alive)setMessage('暂时无法恢复账号连接，本机记录保留，请稍后重试。');}
   };
   window.addEventListener('online',reconnect);
   return()=>{alive=false;unsubscribe();window.removeEventListener('online',reconnect);};

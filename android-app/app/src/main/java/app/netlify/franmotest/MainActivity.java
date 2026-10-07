@@ -124,9 +124,10 @@ public final class MainActivity extends ComponentActivity {
         web.addJavascriptInterface(new NativeBridge(), "FranmotestNative");
         WebViewAssetLoader loader = new WebViewAssetLoader.Builder().setDomain(HOST)
             .addPathHandler("/", path -> {
-                // API requests fall through to the owned website, keeping same-origin auth.
+                // Keep the original virtual origin for installed users' local records.
+                // Migrated builds must never fall through to the old online backend.
                 if (path.startsWith("api/") || path.startsWith(".netlify/identity/")
-                    || path.startsWith(".netlify/functions/")) return null;
+                    || path.startsWith(".netlify/functions/")) return BuildConfig.MIGRATED_BACKEND ? missingAsset() : null;
                 if (path.isEmpty()) path = "index.html";
                 if (path.contains("..") || path.contains("\\")) return missingAsset();
                 try {
@@ -144,19 +145,31 @@ public final class MainActivity extends ComponentActivity {
         web.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) { updater.publish(); }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                if (BuildConfig.MIGRATED_BACKEND && "https".equals(request.getUrl().getScheme())) {
+                    String host = request.getUrl().getHost();
+                    if (BuildConfig.API_HOST.equals(host) || BuildConfig.AUTH_HOST.equals(host)) return null;
+                }
                 if (!"https".equals(request.getUrl().getScheme()) || !HOST.equals(request.getUrl().getHost()))
                     return missingAsset();
                 return loader.shouldInterceptRequest(request.getUrl());
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
-                if (isAppUrl(uri)) return false;
+                if (isAppUrl(uri)) {
+                    if (HOST.equals(uri.getHost())) return false;
+                    view.loadUrl(localAppUrl(uri));
+                    return true;
+                }
                 if (request.hasGesture()) openExternal(uri);
                 return true;
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 // Android 6 uses this overload; explicit external taps use the native bridge.
-                return !isAppUrl(Uri.parse(url));
+                Uri uri = Uri.parse(url);
+                if (!isAppUrl(uri)) return true;
+                if (HOST.equals(uri.getHost())) return false;
+                view.loadUrl(localAppUrl(uri));
+                return true;
             }
             @Override public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
                 root.removeView(view);
@@ -209,13 +222,18 @@ public final class MainActivity extends ComponentActivity {
         return "application/octet-stream";
     }
     private static boolean isAppUrl(Uri uri) {
-        return uri != null && "https".equals(uri.getScheme()) && HOST.equals(uri.getHost())
+        return uri != null && "https".equals(uri.getScheme())
+            && (HOST.equals(uri.getHost()) || BuildConfig.MIGRATED_BACKEND && BuildConfig.API_HOST.equals(uri.getHost()))
             && (uri.getPort() == -1 || uri.getPort() == 443)
             && ("/".equals(uri.getPath()) || "/index.html".equals(uri.getPath()));
     }
+    private static String localAppUrl(Uri uri) {
+        // Email callbacks must open the bundled UI, preserving the existing storage origin.
+        return uri.buildUpon().authority(HOST).build().toString();
+    }
     private String startUrl(Intent intent) {
         Uri uri = intent == null ? null : intent.getData();
-        return isAppUrl(uri) ? uri.toString() : HOME;
+        return isAppUrl(uri) ? localAppUrl(uri) : HOME;
     }
     @Override protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);

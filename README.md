@@ -4,11 +4,13 @@
 
 ## 在线学习网站
 
-**[打开学习网站](https://franmotest.netlify.app/)**：https://franmotest.netlify.app/
+**[打开学习网站](https://franmotest.pages.dev/)**：https://franmotest.pages.dev/
 
-[网站介绍与使用教程](https://franmotest.netlify.app/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
+[网站介绍与使用教程](https://franmotest.pages.dev/#/about) · [词库生成与导入教程](website/AI词库生成与导入教程.md) · [下载与安装](https://github.com/Alain-0721/french-vocabulary-test/releases)
 
-**[下载 Franmotest 1.1.2 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.2/Franmotest-1.1.2-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。1.1.1 起支持在设置检查更新、App 内下载并打开安卓安装确认，首页提示新版。
+**[下载 Franmotest 1.1.3 安卓 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.3/Franmotest-1.1.3-Android.apk)** · [安卓安装说明](android-app/INSTALL.md)。支持 Android 6.0 及以上，安装包自带学习界面与三本完整词库，不依赖外部浏览器，首次断网也可检测。登录和云同步需要联网。设置可检查更新，首页提示新版。
+
+**1.1.3 迁移更新**：网站改由 Cloudflare Pages 托管，账号、云端记录和头像改由 Supabase 提供，新版运行不依赖 Netlify。原账号、昵称、头像和逐词统计保留；原账号首次登录请用原邮箱“忘记密码”设置新密码，不要重新注册。旧 APK 的更新地址已经内置，首次请手动下载新版覆盖安装，保留本机数据；新版从 GitHub 检查更新。
 
 网站主导航为 **首页、课本过关、每日检测、词库统计、设置**。首页展示当前课本进度、已自评词汇与累计判定，并提供“我的课本”入口；教程可从首页和设置打开。首页顶部提供 App 下载快捷入口，底部可选择网页版 App（PWA）或安卓版 App（APK），并说明两者区别。
 
@@ -32,7 +34,7 @@ Part 和主题提供法中双语标题。Édito B2 是待导入的课本选项�
 
 旧网址的游客记录需先导出再到新网址导入；网站与 ChatGPT 插件通过主进度文件迁移，不自动互相同步。设计预览 `textbooks-preview.html` 使用独立演示数据，检测进度刷新后重置。
 
-网站源码位于 [`website/`](website/README.md)，根目录 `netlify.toml` 提供 Netlify 构建配置。
+网站源码位于 [`website/`](website/README.md)，部署与数据迁移见 [Cloudflare 与 Supabase 说明](website/CLOUDFLARE-MIGRATION.md)。旧网址的浏览器本机存储不会自动搬到新网址，请先在旧站导出完整备份，再到新站导入。
 
 安卓 App 源码位于 [`android-app/`](android-app/README.md)，通过原生 Activity 与系统 WebView 运行 APK 自带的页面与词库，学习过程无需调用浏览器。App 内导入与备份使用系统文件窗口；原账号可联网同步，游客通过完整备份迁移。APK 经发布签名，网站通过 Digital Asset Links 关联应用；签名密钥与密码仅保存在本机，不进入仓库或 Release。
 
@@ -52,8 +54,8 @@ Part 和主题提供法中双语标题。Édito B2 是待导入的课本选项�
 
 - `plugin-package/`：三个 skill、词库与内置 HTML 后备卡片。
 - `assets/`：界面模板、抽词/评分核心、词库和双语标题。
-- `website/`：React/Vite 多课本网站、词库导入教程、账号界面与 Netlify 云端接口。
-- `netlify.toml`：网站构建、函数和路由配置。
+- `website/`：React/Vite 多课本网站、词库导入教程、Supabase 账号界面、Cloudflare 接口和数据库迁移。
+- `netlify.toml`：保留的旧版构建配置，供历史构建和只读导出使用。
 - `*-bridge.js`：MCP Apps 宿主桥接代码。
 - `worker-source.mjs`：MCP 路由、用户隔离和云端记录逻辑。
 - `db/`、`drizzle/`：数据库结构和迁移，不含用户数据。

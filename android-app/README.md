@@ -1,14 +1,14 @@
-# Franmotest 1.1.2 · 独立 Android App
+# Franmotest 1.1.3 · 独立 Android App
 
 Android APK 自带 React 学习界面与三本完整词库，通过原生 Activity 和 Android WebView 在应用内运行。移除了 TWA、Custom Tabs 和 Android Browser Helper，学习不依赖外部浏览器，首次启动即可离线检测。
 
-包名 `app.netlify.franmotest`，版本名 `1.1.2`，内部版本号 `4`，最低 Android 6.0（API 23）。同一发布签名允许覆盖升级此前版本。
+包名 `app.netlify.franmotest`，版本名 `1.1.3`，内部版本号 `6`，最低 Android 6.0（API 23）。同一发布签名允许覆盖升级此前版本。
 
-[下载安装说明](INSTALL.md) · [下载 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.2/Franmotest-1.1.2-Android.apk)
+[下载安装说明](INSTALL.md) · [下载 APK](https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.3/Franmotest-1.1.3-Android.apk)
 
 ## 界面、文件与账号
 
-`MainActivity` 使用官方 `WebViewAssetLoader` 将 APK 内置资源映射到自有 HTTPS 域名。页面与脚本始终从安装包加载；仅 `/api/`、`/.netlify/identity/` 与 `/.netlify/functions/` 请求访问正式服务器。缺失的静态资源返回 404，不回退加载远程页面。原网站的 `@netlify/identity` 登录、持久会话、头像与云同步保留同源 Cookie 行为。
+`MainActivity` 使用官方 `WebViewAssetLoader` 加载 APK 内置页面与脚本。迁移构建通过 Cloudflare Pages 接口同步记录和头像，通过 Supabase 登录并保存会话，不访问旧 Netlify 账号服务。原虚拟来源保留以继续读取已安装 App 的本机记录；缺失静态资源返回 404。新网站的邮件回调会映射回内置页面，保留同一本机存储。
 
 原生文件选择器支持词库和备份导入、头像选择；文件导出通过系统保存窗口写入用户指定位置。返回键先关闭弹窗或菜单，再返回上一页，首页连续返回退出。系统栏、刘海、键盘与深色外观由原生窗口处理。学习卡片保持现有无蓝色点击高亮设置。
 
@@ -30,7 +30,7 @@ npm run build
 
 `build.mjs` 读取项目根目录 `.netlify/android-tools/config.json` 中的 `jdkPath` 与 `androidSdkPath`，生成 Release/Debug、运行 Android Lint，再对发布 APK 对齐、签名与校验。签名配置为 `app-config.json`，密码只从本机 `.netlify/android-signing/password.json` 读取。私有密钥与密码不进入仓库或 Release。请私下备份，未来升级需继续使用相同签名并增加内部版本号。
 
-产物位于 `.netlify/releases/android-1.1.2/`。也可用 Android Studio 打开本目录构建。应用发布为 APK；Google Play 上架需另行准备 AAB 和商店资料。
+迁移构建需提供 [网站迁移说明](../website/CLOUDFLARE-MIGRATION.md) 中的公开环境变量。产物位于 `.netlify/releases/android-1.1.3/`。也可用 Android Studio 打开本目录构建。应用发布为 APK；Google Play 上架需另行准备 AAB 和商店资料。
 
 ```powershell
 # 在 website 目录，先构建 native assets

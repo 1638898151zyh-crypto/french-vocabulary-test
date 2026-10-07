@@ -4,7 +4,7 @@ import {usePwa,installPwa} from './pwa.js';
 import {isNativeApp} from './native-app.js';
 import {checkNativeUpdate} from './native-updates.js';
 import './pwa.css';
-const apk='https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.5/Franmotest-1.1.5-Android.apk';
+const apk='https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.6/Franmotest-1.1.6-Android.apk';
 const websiteHome=(import.meta.env?.VITE_SITE_URL||'https://franmotest.pages.dev/').replace(/\/$/,'')+'/#/home';
 export function AppDownload({id}){
  const pwa=usePwa(),[type,setType]=useState(isNativeApp?'android':'web'),[help,setHelp]=useState(false),[busy,setBusy]=useState(false);

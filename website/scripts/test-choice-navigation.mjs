@@ -12,7 +12,7 @@ const button=(d,text)=>[...d.querySelectorAll('.np-library-pager button')].find(
 
 test('Part and theme bottom navigation obey boundaries, reset themes on Part change and retain the search query',async()=>{
  const dom=app(),w=dom.window,d=w.document;try{
-  await pause();assert.equal(d.querySelector('.np-library-pager'),null);
+  await pause();assert.equal(d.querySelector('.np-library-pager'),null);d.querySelector('[aria-label="筛选 Part"]').click();await pause();assert.equal(d.querySelector('.choice-search'),null);assert.equal(d.activeElement.getAttribute('role'),'option');assert.equal(d.querySelectorAll('[role=option]').length,9);d.querySelector('[aria-label="关闭选择菜单"]').click();await pause();
   await choose(w,'筛选 Part','U1 · P1');assert.equal(d.querySelectorAll('.np-dictionary details').length,2);assert.ok(button(d,'上一个 Part').disabled);assert.ok(!button(d,'下一个 Part').disabled);
   await choose(w,'筛选主题','theme-0-0');assert.equal(d.querySelectorAll('.np-library-pager section').length,2);assert.ok(button(d,'上一个主题').disabled);
   button(d,'下一个主题').click();await pause();assert.match(d.querySelector('.np-dictionary').textContent,/mot-0-1/);assert.ok(button(d,'下一个主题').disabled);
@@ -24,8 +24,8 @@ test('Part and theme bottom navigation obey boundaries, reset themes on Part cha
 });
 test('searchable menu filters long labels, traps keyboard focus, closes on Escape and restores trigger focus and scrolling',async()=>{
  const dom=app(),w=dom.window,d=w.document;try{
-  await pause();d.body.style.overflow='auto';const trigger=d.querySelector('[aria-label="筛选 Part"]');trigger.click();await pause();assert.equal(d.body.style.overflow,'hidden');assert.equal(trigger.getAttribute('aria-expanded'),'true');
-  const search=d.querySelector('.choice-search input');assert.equal(d.activeElement,search);Object.getOwnPropertyDescriptor(w.HTMLInputElement.prototype,'value').set.call(search,'U8');search.dispatchEvent(new w.Event('input',{bubbles:true}));await pause();assert.equal(d.querySelectorAll('[role=option]').length,1);assert.match(d.querySelector('[role=option]').textContent,/U8/);
+  await pause();d.body.style.overflow='auto';const trigger=d.querySelector('[aria-label="筛选主题"]');trigger.click();await pause();assert.equal(d.body.style.overflow,'hidden');assert.equal(trigger.getAttribute('aria-expanded'),'true');
+  const search=d.querySelector('.choice-search input');assert.equal(d.activeElement,search);Object.getOwnPropertyDescriptor(w.HTMLInputElement.prototype,'value').set.call(search,'theme-7-1');search.dispatchEvent(new w.Event('input',{bubbles:true}));await pause();assert.equal(d.querySelectorAll('[role=option]').length,1);assert.match(d.querySelector('[role=option]').textContent,/theme-7-1/);
   d.querySelector('[role=option]').focus();d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Tab',bubbles:true}));assert.equal(d.activeElement.getAttribute('aria-label'),'关闭选择菜单');d.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause();assert.equal(d.querySelector('[aria-modal=true]'),null);assert.equal(d.activeElement,trigger);assert.equal(d.body.style.overflow,'auto');
   trigger.click();await pause();d.querySelector('.choice-backdrop').click();await pause();assert.equal(d.querySelector('[aria-modal=true]'),null);
  }finally{dom.window.close();}

@@ -3,10 +3,10 @@ import {createPortal} from 'react-dom';
 import {Check,ChevronDown,Search,X} from 'lucide-react';
 import './choice-menu.css';
 
-export function ChoiceMenu({label,value,options,onChange}){
+export function ChoiceMenu({label,value,options,onChange,searchable=options.length>6}){
  const [open,setOpen]=useState(false),[query,setQuery]=useState('');
  const id=useId(),trigger=useRef(),dialog=useRef();
- const selected=options.find(o=>o.value===value),searchable=options.length>6;
+ const selected=options.find(o=>o.value===value);
  const filtered=options.filter(o=>(o.label+' '+(o.description||'')).toLocaleLowerCase().includes(query.toLocaleLowerCase().trim()));
  useEffect(()=>{
   if(!open)return;

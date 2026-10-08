@@ -14,13 +14,13 @@ test('manifest has standalone launch, stable scope and real correctly sized icon
  for(const icon of manifest.icons){const png=readFileSync('public'+icon.src),[size]=icon.sizes.split('x').map(Number);assert.equal(png.subarray(1,4).toString(),'PNG');assert.equal(png.readUInt32BE(16),size);assert.equal(png.readUInt32BE(20),size);}
  assert.ok(manifest.icons.some(icon=>icon.purpose==='maskable'));assert.ok(readFileSync('index.html','utf8').includes('apple-touch-icon'));
 });
-function worker(){
+function worker({redirectedShell=false}={}){
  const handlers=new Map(),stores=new Map([['franmo-app-old',new Map()],['other-app',new Map()]]);let skipped=0,claimed=0;
- const cache={addAll:async files=>{for(const file of files)stores.get('franmo-app-test').set(new URL(file.url).pathname,new Response(file.url.endsWith('index.html')?'offline shell':'asset'));},match:async path=>stores.get('franmo-app-test').get(path)?.clone()};
+ const cache={addAll:async files=>{for(const file of files)stores.get('franmo-app-test').set(new URL(file.url).pathname,new Response(file.url.endsWith('index.html')?'offline shell':'asset',{headers:{'Content-Type':file.url.endsWith('index.html')?'text/html':'text/plain'}}));},match:async path=>{const response=stores.get('franmo-app-test').get(path)?.clone();if(response&&redirectedShell&&path==='/index.html')Object.defineProperty(response,'redirected',{value:true});return response;}};
  const self={location:{origin:'https://example.test'},addEventListener:(name,fn)=>handlers.set(name,fn),skipWaiting:()=>skipped++,clients:{claim:async()=>claimed++}};
  const script=readFileSync('src/service-worker.js','utf8').replace('__CACHE_VERSION__','test').replace('__PRECACHE_FILES__',JSON.stringify(['/index.html','/assets/app.js','/favicon.svg']));
  const WrappedRequest=class extends Request{constructor(url,options){super(new URL(url,'https://example.test'),options);}};
- vm.runInNewContext(script,{self,caches:{open:async key=>{if(!stores.has(key))stores.set(key,new Map());return cache;},keys:async()=>[...stores.keys()],delete:async key=>stores.delete(key)},Request:WrappedRequest,URL,fetch:async()=>{throw Error('offline');}});
+ vm.runInNewContext(script,{self,caches:{open:async key=>{if(!stores.has(key))stores.set(key,new Map());return cache;},keys:async()=>[...stores.keys()],delete:async key=>stores.delete(key)},Request:WrappedRequest,Response,URL,fetch:async()=>{throw Error('offline');}});
  return {handlers,stores,skipped:()=>skipped,claimed:()=>claimed,async event(name){let promise;handlers.get(name)({waitUntil:p=>promise=p});await promise;},async fetch(path,options={}){let response;handlers.get('fetch')({request:{url:new URL(path,self.location.origin).href,method:'GET',mode:'cors',...options},respondWith:r=>response=r});return response?await response:null;}};
 }
 test('offline shell and build assets survive navigation; private APIs, previews and writes bypass cache',async()=>{
@@ -29,6 +29,10 @@ test('offline shell and build assets survive navigation; private APIs, previews 
  for(const [path,options] of [['/api/multi-progress',{}],['/api/avatar/abc.png',{}],['/.netlify/identity/user',{}],['/textbooks-preview.html',{mode:'navigate'}],['https://other.test/assets/app.js',{}],['/assets/app.js',{method:'POST'}]])assert.equal(await w.fetch(path,options),null);
  await w.event('activate');assert.equal(w.claimed(),1);assert.ok(!w.stores.has('franmo-app-old'));assert.ok(w.stores.has('other-app'));
  w.handlers.get('message')({data:{type:'IGNORE'}});assert.equal(w.skipped(),0);w.handlers.get('message')({data:{type:'ACTIVATE_UPDATE'}});assert.equal(w.skipped(),1);
+});
+test('Cloudflare redirected HTML cache serves manual-redirect navigation without a network error',async()=>{
+ const w=worker({redirectedShell:true});await w.event('install');
+ for(const path of ['/#/study','/#/home']){const response=await w.fetch(path,{mode:'navigate',redirect:'manual'});assert.equal(response.redirected,false);assert.equal(response.status,200);assert.equal(response.headers.get('Content-Type'),'text/html');assert.equal(await response.text(),'offline shell');}
 });
 test('production worker precaches every generated script, stylesheet and manifest icon',()=>{
  const output=process.env.FRANMOTEST_BACKEND==='supabase'?'dist-cloudflare':'dist';

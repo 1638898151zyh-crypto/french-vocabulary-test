@@ -23,6 +23,9 @@ self.addEventListener('fetch',event=>{
   // Serve one complete build: new assets activate only with their own HTML.
   event.respondWith((async()=>{
    const cached=await (await caches.open(CACHE)).match('/index.html');
+   // Pages redirects /index.html to /. Navigation requests use manual redirects
+   // and reject a cached followed-redirect response with ERR_FAILED.
+   if(cached?.redirected)return new Response(cached.body,{status:cached.status,statusText:cached.statusText,headers:cached.headers});
    return cached||fetch(request);
   })());
  }else if(STATIC.has(url.pathname)&&!url.search){

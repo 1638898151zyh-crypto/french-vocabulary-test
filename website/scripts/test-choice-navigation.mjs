@@ -30,3 +30,31 @@ test('searchable menu filters long labels, traps keyboard focus, closes on Escap
   trigger.click();await pause();d.querySelector('.choice-backdrop').click();await pause();assert.equal(d.querySelector('[aria-modal=true]'),null);
  }finally{dom.window.close();}
 });
+
+const dropdownOutput=await build({stdin:{contents:`import React,{useState} from 'react';import {createRoot} from 'react-dom/client';import {ChoiceMenu} from './src/choice-menu.jsx';function App(){const [order,setOrder]=useState('textbook'),[layout,setLayout]=useState('classic');return <><ChoiceMenu presentation="dropdown" label="切换词汇顺序" value={order} options={[{value:'textbook',label:'按教材顺序'},{value:'random',label:'按混乱排序'}]} onChange={setOrder}/><ChoiceMenu presentation="dropdown" label="切换卡片布局" value={layout} options={[{value:'classic',label:'对错在左 · 翻译在右'},{value:'right',label:'翻译在左 · 对错在右'}]} onChange={setLayout}/><button id="outside">页面其他操作</button></>}createRoot(document.getElementById('root')).render(<App/>);`,resolveDir:process.cwd(),loader:'jsx'},bundle:true,write:false,format:'iife',platform:'browser',loader:{'.css':'empty'},logLevel:'silent'});
+
+test('anchored dropdowns preserve scrolling, toggle in place and stay inside narrow viewports',async()=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test/',runScripts:'dangerously',pretendToBeVisual:true}),w=dom.window,d=w.document;
+ w.innerWidth=320;w.innerHeight=700;
+ w.HTMLElement.prototype.getBoundingClientRect=function(){return this.getAttribute('aria-label')==='切换卡片布局'?{left:160,bottom:200,width:140}:{left:20,bottom:200,width:130};};
+ w.eval(dropdownOutput.outputFiles[0].text);
+ try{
+  await pause();d.body.style.overflow='auto';const order=d.querySelector('[aria-label="切换词汇顺序"]'),layout=d.querySelector('[aria-label="切换卡片布局"]');
+  order.click();await pause();let popup=d.querySelector('.choice-dropdown');assert.ok(popup);assert.equal(d.querySelector('.choice-backdrop'),null);assert.equal(d.querySelector('[aria-modal]'),null);assert.equal(d.body.style.overflow,'auto');assert.equal(order.getAttribute('aria-haspopup'),'listbox');assert.equal(popup.style.top,'207px');assert.ok(parseFloat(popup.style.left)+parseFloat(popup.style.width)<=308);
+  order.click();await pause();assert.equal(d.querySelector('.choice-dropdown'),null);
+  order.click();await pause();layout.click();await pause();assert.equal(d.querySelectorAll('.choice-dropdown').length,1);assert.equal(order.getAttribute('aria-expanded'),'false');assert.equal(layout.getAttribute('aria-expanded'),'true');popup=d.querySelector('.choice-dropdown');assert.ok(parseFloat(popup.style.left)+parseFloat(popup.style.width)<=308);
+  [...popup.querySelectorAll('[role=option]')].find(b=>b.textContent.includes('翻译在左')).click();await pause();assert.equal(d.querySelector('.choice-dropdown'),null);assert.match(layout.textContent,/翻译在左/);assert.equal(d.activeElement,layout);
+  order.click();await pause();d.querySelector('#outside').dispatchEvent(new w.Event('pointerdown',{bubbles:true}));await pause();assert.equal(d.querySelector('.choice-dropdown'),null);
+  order.click();await pause();w.innerWidth=390;w.dispatchEvent(new w.Event('resize'));await pause();assert.equal(d.querySelector('.choice-dropdown').style.left,'20px');
+ }finally{w.close();}
+});
+
+test('dropdown keyboard selection, Escape and Tab do not trap focus',async()=>{
+ const dom=new JSDOM('<div id="root"></div>',{url:'https://example.test/',runScripts:'dangerously',pretendToBeVisual:true}),w=dom.window,d=w.document;w.eval(dropdownOutput.outputFiles[0].text);
+ try{
+  await pause();const order=d.querySelector('[aria-label="切换词汇顺序"]');order.focus();order.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));await pause();assert.equal(d.activeElement.getAttribute('aria-selected'),'true');
+  d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true,cancelable:true}));assert.match(d.activeElement.textContent,/混乱/);d.activeElement.click();await pause();assert.match(order.textContent,/混乱/);assert.equal(d.activeElement,order);
+  order.click();await pause();d.activeElement.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await pause();assert.equal(d.querySelector('.choice-dropdown'),null);assert.equal(d.activeElement,order);
+  order.click();await pause();const tab=new w.KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true});d.activeElement.dispatchEvent(tab);await pause();assert.equal(tab.defaultPrevented,false);assert.equal(d.querySelector('.choice-dropdown'),null);assert.equal(d.activeElement,order);
+ }finally{w.close();}
+});

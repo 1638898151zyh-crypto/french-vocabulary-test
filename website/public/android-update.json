@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "packageId": "app.netlify.franmotest",
-  "versionName": "1.1.6",
-  "versionCode": 9,
-  "apkUrl": "https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.6/Franmotest-1.1.6-Android.apk",
-  "sha256": "6341cba40d66e80b5f0b9e9939c8771fa231f24a71104e7c4504f78f48f688e7",
-  "size": 2307476,
-  "notes": "Part 选择菜单去掉搜索框，打开后直接滚动选择，不自动弹出手机键盘；保留主题和词汇搜索。"
+  "versionName": "1.1.7",
+  "versionCode": 10,
+  "apkUrl": "https://github.com/Alain-0721/french-vocabulary-test/releases/download/v1.1.7/Franmotest-1.1.7-Android.apk",
+  "sha256": "b2a188960f2098e6f47b96ba860e69867b3314a94c385a4e675187138c1538a0",
+  "size": 2340244,
+  "notes": "顺序和布局选项在按钮下方展开；新增 Édito A1 2022 词库（566 条、20 个 Part）；保留学习记录和云同步。"
 }

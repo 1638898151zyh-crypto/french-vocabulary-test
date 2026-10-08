@@ -15,5 +15,5 @@ const updateMetadata=join(destination,'android-update.json');
 if(existsSync(updateMetadata))rmSync(updateMetadata);
 if(existsSync(join(destination,'sw.js')))throw Error('Native assets must not contain a service worker.');
 const scripts=readdirSync(join(destination,'assets')).filter(name=>name.endsWith('.js')).map(name=>readFileSync(join(destination,'assets',name),'utf8')).join('');
-for(const marker of ['Édito B1','Inspire A1','Édito A2','FranmotestNative'])if(!scripts.includes(marker))throw Error('Native bundle missing '+marker);
-console.log('APK assets ready: learning UI, three textbook banks, native file bridge.');
+for(const marker of ['Édito B1','Inspire A1','Édito A2','Édito A1','edito-a1-2022','choice-dropdown','FranmotestNative'])if(!scripts.includes(marker))throw Error('Native bundle missing '+marker);
+console.log('APK assets ready: learning UI, four textbook banks, anchored settings, native file bridge.');

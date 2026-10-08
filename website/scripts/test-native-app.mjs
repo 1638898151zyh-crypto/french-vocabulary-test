@@ -20,11 +20,18 @@ function app(saved,{online=false}={}){
  if(saved)w.localStorage.setItem('franmo-atelier:v2:guest',saved);
  w.eval(ui.outputFiles[0].text);return {dom,w};
 }
-test('fresh offline APK opens home, loads all three full banks, switches books and never registers a website worker',async()=>{
- const {dom,w}=app();try{await pause();assert.match(w.document.body.textContent,/三本课本词库已内置/);assert.match(w.document.body.textContent,/首次断网也能学习/);assert.equal(w.workerCalls,0);
+test('fresh offline APK opens home, loads all four full banks, switches books and never registers a website worker',async()=>{
+ const {dom,w}=app();try{await pause();assert.match(w.document.body.textContent,/四本课本词库已内置/);assert.match(w.document.body.textContent,/首次断网也能学习/);assert.equal(w.workerCalls,0);
  w.document.querySelector('.dp-switch').click();await pause();
- const buttons=[...w.document.querySelectorAll('.dp-switch-menu button')];for(const name of ['Édito B1','Inspire A1','Édito A2'])assert.ok(buttons.some(b=>b.textContent.includes(name)));
+ const buttons=[...w.document.querySelectorAll('.dp-switch-menu button')];for(const name of ['Édito B1','Inspire A1','Édito A2','Édito A1'])assert.ok(buttons.some(b=>b.textContent.includes(name)));
  buttons.find(b=>b.textContent.includes('Inspire A1')).click();await pause();w.location.hash='/study';await pause();assert.match(w.document.body.textContent,/Inspire A1/);assert.ok(w.document.querySelector('.dp-word-trigger'));assert.equal(w.externals.length,0);
+ }finally{dom.window.close();}
+});
+
+test('Android back closes an anchored setting without leaving study or changing scores',async()=>{
+ const {dom,w}=app();try{await pause();w.location.hash='/study';await pause();const d=w.document,before=w.localStorage.getItem('franmo-atelier:v2:guest');
+ for(const label of ['切换词汇顺序','切换卡片布局']){d.querySelector(`[aria-label="${label}"]`).click();await pause();assert.ok(d.querySelector('.choice-dropdown'));assert.equal(d.querySelector('.choice-backdrop'),null);assert.equal(w.franmotestBack(),true);await pause();assert.equal(d.querySelector('.choice-dropdown'),null);assert.equal(w.location.hash,'#/study');assert.equal(w.localStorage.getItem('franmo-atelier:v2:guest'),before);}
+ assert.equal(w.franmotestBack(),false);
  }finally{dom.window.close();}
 });
 test('native word votes survive restart, and full backup uses a real save bridge with restorable records',async()=>{
